@@ -1,0 +1,6 @@
+numpy
+scipy
+matplotlib
+docopt
+git+https://github.com/mahnen/gamma_limits_sensitivity.git#egg=gamma_limits_sensitivity
+-e .

@@ -17,15 +17,12 @@ setup(
             'acp_paper_analysis = acp_paper_analysis.__main__:main'
         ]
     },
-    install_requires={
+    install_requires=[
         'numpy',
         'scipy',
         'matplotlib',
         'docopt',
         'gamma_limits_sensitivity'
-    },
-    dependency_links={
-        'git+ssh://git@github.com/mahnen/gamma_limits_sensitivity.git#egg=gamma_limits_sensitivity',
-    },
+    ],
     tests_require=['pytest']
 )
