@@ -140,5 +140,5 @@ def test_time_to_detection():
         f_0, gamma, e_0, magic_aeff, sigma_bg, alpha
         )
 
-    assert t_est < 3600  # check that the thing is detected faster than 1h
+    assert t_est < 360  # check that the thing is detected faster than 0.1h
     assert t_est > 0  # check that the thing is detectable
