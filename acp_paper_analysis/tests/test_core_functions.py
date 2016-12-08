@@ -3,6 +3,7 @@ This is a set of test in order to check the
 core functions
 '''
 import acp_paper_analysis as acp
+import gamma_limits_sensitivity as gls
 
 import numpy as np
 import pytest
@@ -109,7 +110,7 @@ def test_get_crab_spectrum():
 
 def test_get_3fgl_catalog():
     '''
-    This method tests if the read_3fgl_catalog
+    This method tests if the get_3fgl_catalog
     function is doing good work
     '''
     resource_dict = acp.get_resources_paths()
@@ -120,3 +121,24 @@ def test_get_3fgl_catalog():
     for source in fermi_lat_3fgl_catalog:
         assert source['spectral_index'] < 0.
         assert source['flux_density'] < 1e-1
+
+
+def test_time_to_detection():
+    '''
+    Test if the time to detection gives sensible results
+    '''
+    resource_dict = acp.get_resources_paths()
+    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
+
+    f_0 = 1e-9
+    e_0 = 1.
+    gamma = -2.7
+    sigma_bg = 2.7e-3
+    alpha = 0.2
+
+    t_est = acp.time_to_detection(
+        f_0, gamma, e_0, magic_aeff, sigma_bg, alpha
+        )
+
+    assert t_est < 3600  # check that the thing is detected faster than 1h
+    assert t_est > 0  # check that the thing is detectable

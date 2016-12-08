@@ -6,8 +6,10 @@ This is the hard working code in order to create publication plots
 # import matplotlib.pyplot as plt
 import numpy as np
 import acp_paper_analysis as acp
+import gamma_limits_sensitivity as gls
 from scipy.interpolate import interpolate
 import pyfits
+
 
 def get_resources_paths():
     '''
@@ -57,7 +59,7 @@ def get_3fgl_catalog(file_path):
     and transform them into my standard units: TeV, cm^2, s
     '''
     hdu_list = pyfits.open(file_path)
-    
+
     # make a list of dcts for each source and return it
     name_index = 0
     ra_index = 1
@@ -85,6 +87,7 @@ def get_3fgl_catalog(file_path):
         source_dict_list.append(source_dict)
 
     return source_dict_list
+
 
 def get_cosmic_ray_flux_interpol(
         file_path,
@@ -206,3 +209,27 @@ def get_spectrum_from_linear_file(
     )
 
     return data_interpol
+
+
+def time_to_detection(
+        f_0,
+        gamma,
+        e_0,
+        a_eff_interpol,
+        sigma_bg,
+        alpha,
+        threshold=5.
+        ):
+    '''
+    This function calls gls functions in order to calculate time to detections
+    '''
+    return gls.t_obs_li_ma_criterion(
+        f_0 * gls.effective_area_averaged_flux(
+            gamma,
+            e_0,
+            a_eff_interpol
+            ),
+        sigma_bg,
+        alpha,
+        threshold
+        )
