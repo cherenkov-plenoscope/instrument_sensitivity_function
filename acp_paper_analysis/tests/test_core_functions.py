@@ -3,6 +3,8 @@ This is a set of test in order to check the
 core functions
 '''
 import acp_paper_analysis as acp
+
+import numpy as np
 import pytest
 import os.path
 
@@ -75,3 +77,31 @@ def test_get_fermi_lat_isez():
     assert fermi_lat_isez(0.+1e-9) == 0.  # upper limit is 1 TeV
     assert fermi_lat_isez(-2) > 0.
     assert fermi_lat_isez(-2) < 1e0
+
+
+def test_get_crab_spectrum():
+    '''
+    This will test reading in crab sed file and transform it into
+    my regular units
+    '''
+    resource_dict = acp.get_resources_paths()
+    crab_spectrum = acp.get_crab_spectrum(resource_dict['crab']['broad_sed'])
+
+    assert crab_spectrum(-4.6) == 0.  # lower limit is about 30 MeV
+    assert crab_spectrum(1.35) == 0.  # upper limit is 1 TeV
+    assert crab_spectrum(-2) > 0.
+    assert crab_spectrum(-2) < 1e0
+
+    # check few specific fluxes for sanity
+    rel_accuracy_margin = 0.5  # 50 percent accurate should be OK as test
+    log10_e1 = -1
+    log10_e2 = +1
+    result_1 = 7e-9
+    result_2 = 5e-14
+    assert np.abs(
+        crab_spectrum(log10_e1) - result_1
+        )/crab_spectrum(log10_e1) < rel_accuracy_margin
+
+    assert np.abs(
+        crab_spectrum(log10_e2) - result_2
+        )/crab_spectrum(log10_e2) < rel_accuracy_margin
