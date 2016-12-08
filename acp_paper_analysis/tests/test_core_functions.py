@@ -105,3 +105,18 @@ def test_get_crab_spectrum():
     assert np.abs(
         crab_spectrum(log10_e2) - result_2
         )/crab_spectrum(log10_e2) < rel_accuracy_margin
+
+
+def test_get_3fgl_catalog():
+    '''
+    This method tests if the read_3fgl_catalog
+    function is doing good work
+    '''
+    resource_dict = acp.get_resources_paths()
+
+    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+        resource_dict['fermi_lat']['3fgl']
+        )
+    for source in fermi_lat_3fgl_catalog:
+        assert source['spectral_index'] < 0.
+        assert source['flux_density'] < 1e-1

@@ -22,6 +22,7 @@ setup(
         'scipy',
         'matplotlib',
         'docopt',
+        'pyfits'
         'gamma_limits_sensitivity'
     ],
     tests_require=['pytest']

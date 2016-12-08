@@ -7,11 +7,11 @@ This is the hard working code in order to create publication plots
 import numpy as np
 import acp_paper_analysis as acp
 from scipy.interpolate import interpolate
-
+import pyfits
 
 def get_resources_paths():
     '''
-    This function returns a dict including relative paths
+    This function returns a dict including absolute paths
     to resource files with fluxes (protons, leptons)
     '''
     resource_paths_dict = {
@@ -30,10 +30,61 @@ def get_resources_paths():
         'crab': {
             'broad_sed': acp.__path__[0] +
             '/resources/crab_nebula_sed_fermi_magic.dat'
+        },
+        'fermi_lat': {
+            '3fgl': acp.__path__[0] +
+            '/resources/FermiLAT_3FGL_gll_psc_v16.fit'
         }
     }
     return resource_paths_dict
 
+
+def get_3fgl_catalog(file_path):
+    '''
+    Function to get the relevant information from the
+    3FGL FITS file. These are:
+
+    source name
+    Ra / deg
+    Dec / deg
+    GalLong / deg
+    GalLat / deg
+    Spectrum_Type (in the range [100MeV .. 100GeV])
+    Pivot_Energy / MeV
+    Spectral_Index
+    Flux_Density / 1/(cm^2 s MeV)
+
+    and transform them into my standard units: TeV, cm^2, s
+    '''
+    hdu_list = pyfits.open(file_path)
+    
+    # make a list of dcts for each source and return it
+    name_index = 0
+    ra_index = 1
+    dec_index = 2
+    gal_long_index = 3
+    gal_lat_index = 4
+    spec_type_index = 21
+    pivot_energy_index = 13
+    spectral_index_index = 22
+    flux_density_index = 14
+
+    source_dict_list = []
+    for source in hdu_list[1].data:
+        source_dict = {
+            'name': source[name_index],
+            'ra': source[ra_index],
+            'dec': source[dec_index],
+            'gal_long': source[gal_long_index],
+            'gal_lat': source[gal_lat_index],
+            'spec_type': source[spec_type_index],
+            'pivot_energy': source[pivot_energy_index]*1e-6,
+            'spectral_index': -1*source[spectral_index_index],
+            'flux_density': source[flux_density_index]*1e6
+        }
+        source_dict_list.append(source_dict)
+
+    return source_dict_list
 
 def get_cosmic_ray_flux_interpol(
         file_path,
