@@ -107,7 +107,7 @@ def get_fermi_lat_isez(file_path):
     # convert energy axis to TeV scale, then take log10
     isez_data[:, 0] = isez_data[:, 0]*b_energy_y_in_tev  # -> TeV
     isez_data[:, 0] = np.log10(isez_data[:, 0])
-    
+
     # interpolate the data points, every energy outside definition range
     # from the data file is assumed to be 0
     isez_data_interpol = interpolate.interp1d(
