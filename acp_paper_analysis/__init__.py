@@ -4,11 +4,74 @@ This is the hard working code in order to create publication plots
 # import gamma_limits_sensitivity as gls
 #
 # import matplotlib.pyplot as plt
+import os
+import pyfits
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import interpolate
+
 import acp_paper_analysis as acp
 import gamma_limits_sensitivity as gls
-from scipy.interpolate import interpolate
-import pyfits
+
+
+def analysis(
+        gamma_aeff,
+        gamma_aeff_cut,
+        electron_positron_aeff,
+        electron_positron_aeff_cut,
+        proton_aeff,
+        proton_aeff_cut,
+        is_test=False
+        ):
+    '''
+    This method contains the main logic behind the analysis.
+    The options passed in 'arguments' include inpath and potentially
+    an outpath. If 'is_test' is set, make the plotting run on
+    lower resolution in order to speed things up.
+    '''
+    one_figure = plt.figure()
+    one_data = np.array([0.])
+
+    figures = {
+        'one_figure': one_figure
+        }
+
+    data = {
+        'one_data': one_data
+    }
+
+    dictionary = {
+        'plots': figures,
+        'data': data
+        }
+
+    return dictionary
+
+
+def generate_absolute_filepaths(arguments):
+    '''
+    This function looks into the provided in folder
+    and scans for the six necessary effective areas.
+    '''
+    aeff_dict = {
+        'gamma': arguments['--in'] + '/gamma_aeff.dat',
+        'gamma_cut': arguments['--in'] + '/gamma_cut_aeff.dat',
+        'electron_positron': arguments['--in'] + '/electron_positron_aeff.dat',
+        'electron_positron_cut': arguments['--in'] +
+        '/electron_positron_cut_aeff.dat',
+        'proton': arguments['--in'] + '/proton_aeff.dat',
+        'proton_cut': arguments['--in'] + '/proton_cut_aeff.dat'
+        }
+
+    for aeff_name in aeff_dict:
+        if os.path.isfile(aeff_dict[aeff_name]) is False:
+            raise ValueError(
+                aeff_dict[aeff_name] +
+                ' was not found. please' +
+                ' provide a correct path to the effective area for ' +
+                aeff_name
+                )
+    return aeff_dict
 
 
 def get_resources_paths():
