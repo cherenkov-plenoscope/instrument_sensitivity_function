@@ -56,15 +56,8 @@ def main():
     version = pkg_resources.require("acp_paper_analysis")[0].version
     arguments = docopt(__doc__, version=version)
 
-    aeff_dict = acp.generate_absolute_filepaths(arguments)
-
     dictionary = acp.analysis(
-        gamma_aeff=aeff_dict['gamma'],
-        gamma_aeff_cut=aeff_dict['gamma_cut'],
-        electron_positron_aeff=aeff_dict['electron_positron'],
-        electron_positron_aeff_cut=aeff_dict['electron_positron_cut'],
-        proton_aeff=aeff_dict['proton'],
-        proton_aeff_cut=aeff_dict['proton_cut'],
+        arguments['--in']
         )
     main_logic(arguments, dictionary)
 
