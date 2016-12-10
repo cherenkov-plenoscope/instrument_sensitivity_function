@@ -11,7 +11,10 @@ setup(
     packages=[
         'acp_paper_analysis'
     ],
-    package_data={'acp_paper_analysis': ['resources/*']},
+    package_data={'acp_paper_analysis': [
+        'resources/*',
+        'resources/test_infolder/*'
+        ]},
     entry_points={
         'console_scripts': [
             'acp_paper_analysis = acp_paper_analysis.__main__:main'

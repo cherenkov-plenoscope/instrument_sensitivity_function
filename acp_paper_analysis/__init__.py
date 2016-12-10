@@ -15,12 +15,7 @@ import gamma_limits_sensitivity as gls
 
 
 def analysis(
-        gamma_aeff,
-        gamma_aeff_cut,
-        electron_positron_aeff,
-        electron_positron_aeff_cut,
-        proton_aeff,
-        proton_aeff_cut,
+        in_folder,
         is_test=False
         ):
     '''
@@ -30,12 +25,7 @@ def analysis(
     lower resolution in order to speed things up.
     '''
     effective_area_dict = get_interpolated_effective_areas(
-        gamma_aeff,
-        gamma_aeff_cut,
-        electron_positron_aeff,
-        electron_positron_aeff_cut,
-        proton_aeff,
-        proton_aeff_cut
+        in_folder
         )
 
     effective_area_figure = get_effective_area_figure(
@@ -61,26 +51,35 @@ def analysis(
 
 
 def get_interpolated_effective_areas(
-        gamma_aeff,
-        gamma_aeff_cut,
-        electron_positron_aeff,
-        electron_positron_aeff_cut,
-        proton_aeff,
-        proton_aeff_cut
+        in_folder
         ):
+
+    aeff_file_paths = acp.generate_absolute_filepaths(in_folder)
 
     effective_areas_dict = {
         'gamma': {
-            'trigger': gls.get_effective_area(gamma_aeff),
-            'cut': gls.get_effective_area(gamma_aeff_cut)
+            'trigger': gls.get_effective_area(
+                aeff_file_paths['gamma']
+                ),
+            'cut': gls.get_effective_area(
+                aeff_file_paths['gamma_cut']
+                )
         },
         'electron_positron': {
-            'trigger': gls.get_effective_area(electron_positron_aeff),
-            'cut': gls.get_effective_area(electron_positron_aeff_cut)
+            'trigger': gls.get_effective_area(
+                aeff_file_paths['electron_positron']
+                ),
+            'cut': gls.get_effective_area(
+                aeff_file_paths['electron_positron_cut']
+                )
         },
         'gamma': {
-            'trigger': gls.get_effective_area(proton_aeff),
-            'cut': gls.get_effective_area(proton_aeff_cut)
+            'trigger': gls.get_effective_area(
+                aeff_file_paths['proton']
+                ),
+            'cut': gls.get_effective_area(
+                aeff_file_paths['proton_cut']
+                )
         },
 
     }
@@ -88,19 +87,19 @@ def get_interpolated_effective_areas(
     return effective_areas_dict
 
 
-def generate_absolute_filepaths(arguments):
+def generate_absolute_filepaths(in_folder):
     '''
     This function looks into the provided in folder
     and scans for the six necessary effective areas.
     '''
     aeff_dict = {
-        'gamma': arguments['--in'] + '/gamma_aeff.dat',
-        'gamma_cut': arguments['--in'] + '/gamma_cut_aeff.dat',
-        'electron_positron': arguments['--in'] + '/electron_positron_aeff.dat',
-        'electron_positron_cut': arguments['--in'] +
+        'gamma': in_folder + '/gamma_aeff.dat',
+        'gamma_cut': in_folder + '/gamma_cut_aeff.dat',
+        'electron_positron': in_folder + '/electron_positron_aeff.dat',
+        'electron_positron_cut': in_folder +
         '/electron_positron_cut_aeff.dat',
-        'proton': arguments['--in'] + '/proton_aeff.dat',
-        'proton_cut': arguments['--in'] + '/proton_cut_aeff.dat'
+        'proton': in_folder + '/proton_aeff.dat',
+        'proton_cut': in_folder + '/proton_cut_aeff.dat'
         }
 
     for aeff_name in aeff_dict:
