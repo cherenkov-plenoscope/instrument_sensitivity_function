@@ -29,11 +29,23 @@ def analysis(
     an outpath. If 'is_test' is set, make the plotting run on
     lower resolution in order to speed things up.
     '''
-    one_figure = plt.figure()
+    effective_area_dict = get_interpolated_effective_areas(
+        gamma_aeff,
+        gamma_aeff_cut,
+        electron_positron_aeff,
+        electron_positron_aeff_cut,
+        proton_aeff,
+        proton_aeff_cut
+        )
+
+    effective_area_figure = get_effective_area_figure(
+        effective_area_dict
+        )
+
     one_data = np.array([0.])
 
     figures = {
-        'one_figure': one_figure
+        'effective_area_figure': effective_area_figure
         }
 
     data = {
@@ -46,6 +58,34 @@ def analysis(
         }
 
     return dictionary
+
+
+def get_interpolated_effective_areas(
+        gamma_aeff,
+        gamma_aeff_cut,
+        electron_positron_aeff,
+        electron_positron_aeff_cut,
+        proton_aeff,
+        proton_aeff_cut
+        ):
+
+    effective_areas_dict = {
+        'gamma': {
+            'trigger': gls.get_effective_area(gamma_aeff),
+            'cut': gls.get_effective_area(gamma_aeff_cut)
+        },
+        'electron_positron': {
+            'trigger': gls.get_effective_area(electron_positron_aeff),
+            'cut': gls.get_effective_area(electron_positron_aeff_cut)
+        },
+        'gamma': {
+            'trigger': gls.get_effective_area(proton_aeff),
+            'cut': gls.get_effective_area(proton_aeff_cut)
+        },
+
+    }
+
+    return effective_areas_dict
 
 
 def generate_absolute_filepaths(arguments):
@@ -296,3 +336,29 @@ def time_to_detection(
         alpha,
         threshold
         )
+
+
+def get_effective_area_figure(
+        effective_area_dict
+        ):
+    '''
+    Get a plot showing the effective areas
+    referenced by a_eff_interpol
+    '''
+    figure = plt.figure()
+
+    colors = ['k', 'c', 'm', 'b', 'r', 'g']
+    linestyles = ['-', '--', '-.', ':']
+    last_cut = ''
+
+    for i, particle in enumerate(effective_area_dict):
+        for j, cut in enumerate(effective_area_dict[particle]):
+            label = particle+' '+cut
+            style = colors[j]+linestyles[i]
+
+            gls.plot_effective_area(
+                effective_area_dict[particle][cut],
+                style=style,
+                label=label)
+
+    return figure

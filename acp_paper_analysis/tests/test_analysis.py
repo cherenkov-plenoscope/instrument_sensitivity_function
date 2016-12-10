@@ -6,6 +6,7 @@ import acp_paper_analysis as acp
 import pytest
 import numpy
 import matplotlib
+import scipy
 
 
 def test_generate_absolute_filepaths():
@@ -16,6 +17,31 @@ def test_generate_absolute_filepaths():
     with pytest.raises(Exception) as e_info:
         acp.generate_absolute_filepaths(arguments={'--in': ''})
         assert e_info is ValueError
+
+
+def test_get_interpolated_effective_areas():
+    '''
+    This test checks the parsing of the effective area files
+    '''
+    resource_dict = acp.get_resources_paths()
+    # test methods on one magic aeff file
+    aeff_test = resource_dict['Aeff']['magic']
+
+    effective_area_dict = acp.get_interpolated_effective_areas(
+        gamma_aeff=aeff_test,
+        gamma_aeff_cut=aeff_test,
+        electron_positron_aeff=aeff_test,
+        electron_positron_aeff_cut=aeff_test,
+        proton_aeff=aeff_test,
+        proton_aeff_cut=aeff_test
+        )
+
+    for particle_type in effective_area_dict:
+        for cut in effective_area_dict[particle_type]:
+            assert isinstance(
+                effective_area_dict[particle_type][cut],
+                scipy.interpolate.interpolate.interp1d
+                )
 
 
 def test_analysis():
