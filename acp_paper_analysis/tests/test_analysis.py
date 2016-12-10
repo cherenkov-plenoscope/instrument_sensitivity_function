@@ -15,7 +15,7 @@ def test_generate_absolute_filepaths():
     generate absolute filepath method
     '''
     with pytest.raises(Exception) as e_info:
-        acp.generate_absolute_filepaths(arguments={'--in': ''})
+        acp.generate_absolute_filepaths(in_path='')
         assert e_info is ValueError
 
 
@@ -23,18 +23,12 @@ def test_get_interpolated_effective_areas():
     '''
     This test checks the parsing of the effective area files
     '''
-    resource_dict = acp.get_resources_paths()
-    # test methods on one magic aeff file
-    aeff_test = resource_dict['Aeff']['magic']
-
     effective_area_dict = acp.get_interpolated_effective_areas(
-        gamma_aeff=aeff_test,
-        gamma_aeff_cut=aeff_test,
-        electron_positron_aeff=aeff_test,
-        electron_positron_aeff_cut=aeff_test,
-        proton_aeff=aeff_test,
-        proton_aeff_cut=aeff_test
+            acp.__path__[0] + '/resources/test_infolder/'
         )
+
+    # chech that there are 3 (gamma, proton, electron/positron) Aeffs
+    assert len(effective_area_dict) == 3
 
     for particle_type in effective_area_dict:
         for cut in effective_area_dict[particle_type]:
@@ -49,17 +43,8 @@ def test_analysis():
     This test checks if the analysis does
     make sense.
     '''
-    resource_dict = acp.get_resources_paths()
-    # test methods on one magic aeff file
-    aeff_test = resource_dict['Aeff']['magic']
-
     result_dict = acp.analysis(
-        gamma_aeff=aeff_test,
-        gamma_aeff_cut=aeff_test,
-        electron_positron_aeff=aeff_test,
-        electron_positron_aeff_cut=aeff_test,
-        proton_aeff=aeff_test,
-        proton_aeff_cut=aeff_test,
+        acp.__path__[0] + '/resources/test_infolder/',
         is_test=True
         )
 

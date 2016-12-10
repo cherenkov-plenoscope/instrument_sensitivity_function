@@ -24,13 +24,8 @@ def analysis(
     an outpath. If 'is_test' is set, make the plotting run on
     lower resolution in order to speed things up.
     '''
-    effective_area_dict = get_interpolated_effective_areas(
-        in_folder
-        )
-
-    effective_area_figure = get_effective_area_figure(
-        effective_area_dict
-        )
+    effective_area_dict = get_interpolated_effective_areas(in_folder)
+    effective_area_figure = get_effective_area_figure(effective_area_dict)
 
     one_data = np.array([0.])
 
@@ -50,10 +45,7 @@ def analysis(
     return dictionary
 
 
-def get_interpolated_effective_areas(
-        in_folder
-        ):
-
+def get_interpolated_effective_areas(in_folder):
     aeff_file_paths = acp.generate_absolute_filepaths(in_folder)
 
     effective_areas_dict = {
@@ -73,7 +65,7 @@ def get_interpolated_effective_areas(
                 aeff_file_paths['electron_positron_cut']
                 )
         },
-        'gamma': {
+        'proton': {
             'trigger': gls.get_effective_area(
                 aeff_file_paths['proton']
                 ),
