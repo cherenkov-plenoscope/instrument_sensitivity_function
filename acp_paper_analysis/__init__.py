@@ -25,6 +25,7 @@ def analysis(
     lower resolution in order to speed things up.
     '''
     effective_area_dict = get_interpolated_effective_areas(in_folder)
+    
     effective_area_figure = get_effective_area_figure(effective_area_dict)
 
     one_data = np.array([0.])
