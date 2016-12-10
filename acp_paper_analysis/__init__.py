@@ -352,5 +352,5 @@ def get_effective_area_figure(
                 style=style,
                 label=label)
 
-    plt.legend(loc=best)
+    plt.legend(loc='best')
     return figure
