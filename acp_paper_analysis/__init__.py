@@ -16,6 +16,12 @@ import gamma_limits_sensitivity as gls
 
 def analysis(
         in_folder,
+        rigidity_cutoff_in_tev=10e-3,
+        relative_flux_below_cutoff=0.1,
+        roi_radius_in_deg=0.5,
+        e_0=1.,
+        f_0=1e-10,
+        gamma=-2.6,
         is_test=False
         ):
     '''

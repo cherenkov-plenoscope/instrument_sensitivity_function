@@ -2,12 +2,18 @@
 This is the main of the ul method paper demonstration
 
 Usage:
-  acp_paper_analysis --in=<path> [--out=<path>]
+  acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --roi=<arg> --f_0=<arg> --Gamma=<arg>  --E_0=<arg>  [--out=<path>]
   acp_paper_analysis (-h | --help)
   acp_paper_analysis --version
 
 Options:
   --in=<path>           Path to folder with effective areas of the acp
+  --cutoff=<arg>        Rigidity cutoff / TV
+  --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
+  --roi=<arg>           Region of interest, viewcone half angle for bg rate calc. / radian
+  --f_0=<arg>           Gamma source flux normalization / (1/[cm^2 s TeV])
+  --Gamma=<arg>         Gamma source power law index (< 0!)
+  --E_0=<arg>           Gamma source reference energy / TeV
   --out=<path>          Optional argument for specifying the output directory
   -h --help             Show this screen.
   --version             Show version.
@@ -57,7 +63,13 @@ def main():
     arguments = docopt(__doc__, version=version)
 
     dictionary = acp.analysis(
-        arguments['--in']
+        arguments['--in'],
+        rigidity_cutoff_in_tev=float(arguments['--cutoff']),
+        relative_flux_below_cutoff=float(arguments['--rel_flux']),
+        roi_radius_in_deg=float(arguments['--roi']),
+        e_0=float(arguments['--E_0']),
+        f_0=float(arguments['--f_0']),
+        gamma=float(arguments['--Gamma'])
         )
     main_logic(arguments, dictionary)
 
