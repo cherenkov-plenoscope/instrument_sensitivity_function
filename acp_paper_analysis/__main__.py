@@ -10,7 +10,7 @@ Options:
   --in=<path>           Path to folder with effective areas of the acp
   --cutoff=<arg>        Rigidity cutoff / TV
   --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
-  --roi=<arg>           Region of interest, viewcone half angle for bg rate calc. / radian
+  --roi=<arg>           Region of interest, viewcone half angle for bg rate calc. / deg
   --f_0=<arg>           Gamma source flux normalization / (1/[cm^2 s TeV])
   --Gamma=<arg>         Gamma source power law index (< 0!)
   --E_0=<arg>           Gamma source reference energy / TeV
