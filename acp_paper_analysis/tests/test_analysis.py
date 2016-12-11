@@ -38,6 +38,62 @@ def test_get_interpolated_effective_areas():
                 )
 
 
+def test_get_effective_area_figure():
+    '''
+    Test to check a drawing method. Should return figure
+    '''
+    effective_area_dict = acp.get_interpolated_effective_areas(
+            acp.__path__[0] + '/resources/test_infolder/'
+    )
+
+    # start producing plots and data products
+    effective_area_figure = acp.get_effective_area_figure(effective_area_dict)
+
+    assert isinstance(effective_area_figure, matplotlib.figure.Figure)
+
+
+def test_get_rates_over_energy_figure():
+    '''
+    Test to check a drawing method
+    '''
+    effective_area_dict = acp.get_interpolated_effective_areas(
+            acp.__path__[0] + '/resources/test_infolder/'
+    )
+    resource_dict = acp.get_resources_paths()
+
+    electron_positron_flux = acp.get_cosmic_ray_flux_interpol(
+        resource_dict['fluxes']['electron_positron'],
+        base_energy_in_TeV=1e-3,
+        plot_power_slope=3.,
+        base_area_in_cm_2=1e4
+        )
+    proton_flux = acp.get_cosmic_ray_flux_interpol(
+        resource_dict['fluxes']['proton'],
+        base_energy_in_TeV=1e-3,
+        plot_power_slope=2.7,
+        base_area_in_cm_2=1e4
+        )
+
+    figure, figure_data, lepton_rate, prot_rate = acp.get_rates_over_energy_figure(
+        effective_area_dict,
+        proton_spec=proton_flux,
+        electron_positron_spec=electron_positron_flux,
+        rigidity_cutoff_in_tev=10e-3,
+        relative_flux_below_cutoff=0.1,
+        roi_radius_in_deg=1.,
+        e_0=1.,
+        f_0=1e-10,
+        gamma=-2.6
+        )
+
+    assert isinstance(figure, matplotlib.figure.Figure)
+    assert isinstance(figure_data, dict)
+    assert lepton_rate > 0.
+    assert lepton_rate < 1e6
+    assert prot_rate > 0.
+    assert prot_rate < 1e6
+
+
 def test_analysis():
     '''
     This test checks if the analysis does

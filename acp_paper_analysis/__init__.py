@@ -24,8 +24,31 @@ def analysis(
     an outpath. If 'is_test' is set, make the plotting run on
     lower resolution in order to speed things up.
     '''
+    # prepare the data
     effective_area_dict = get_interpolated_effective_areas(in_folder)
-    
+    resource_dict = acp.get_resources_paths()
+
+    # get magic sensitivity parameters as stated in ul paper
+    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
+    magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
+    magic_alpha = 0.2  # five off regions
+
+    fermi_lat_isez = acp.get_fermi_lat_isez(resource_dict['isez']['fermi_lat'])
+
+    electron_positron_flux = acp.get_cosmic_ray_flux_interpol(
+        resource_dict['fluxes']['electron_positron'],
+        base_energy_in_TeV=1e-3,
+        plot_power_slope=3.,
+        base_area_in_cm_2=1e4
+        )
+    proton_flux = acp.get_cosmic_ray_flux_interpol(
+        resource_dict['fluxes']['proton'],
+        base_energy_in_TeV=1e-3,
+        plot_power_slope=2.7,
+        base_area_in_cm_2=1e4
+        )
+
+    # start producing plots and data products
     effective_area_figure = get_effective_area_figure(effective_area_dict)
 
     one_data = np.array([0.])
@@ -355,3 +378,22 @@ def get_effective_area_figure(
 
     plt.legend(loc='best')
     return figure
+
+
+def get_rates_over_energy_figure(
+        effective_area_dict,
+        proton_spec,
+        electron_positron_spec,
+        rigidity_cutoff_in_tev=10e-3,
+        relative_flux_below_cutoff=0.1,
+        roi_radius_in_deg=0.5,
+        e_0=1.,
+        f_0=1e-10,
+        gamma=-2.6
+        ):
+    figure = plt.figure()
+    figure_data = {}
+    lepton_rate = 0.
+    proton_rate = 0.
+
+    return figure, figure_data, lepton_rate, proton_rate
