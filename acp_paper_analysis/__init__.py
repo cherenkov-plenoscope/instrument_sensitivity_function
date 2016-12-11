@@ -364,6 +364,21 @@ def solid_angle_of_cone(apex_angle):
     return 2*np.pi*(1-np.cos(apex_angle))
 
 
+def rigidity_to_energy(rigidity, charge, mass):
+    '''
+    Transform rigidity -> energy
+    input units:
+
+    rigidity / teravolt (TV)
+    unit charge [1, 2, ..]
+    mass / (TeV/c^2)
+
+    output:
+    TeV
+    '''
+    return np.sqrt((rigidity*charge)**2 + mass**2)
+
+
 def get_effective_area_figure(
         effective_area_dict
         ):

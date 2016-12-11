@@ -123,6 +123,20 @@ def test_get_3fgl_catalog():
         assert source['flux_density'] < 1e-1
 
 
+def test_rigidity_to_energy():
+    '''
+    this test checks that rigidity to energy conversions work
+    from TV -> TeV
+    '''
+    assert np.isclose(
+        acp.rigidity_to_energy(
+            10e-3,
+            charge=1,
+            mass=0.938272e-3  # proton
+            ), 0.010043921263430134
+        )
+
+
 def test_time_to_detection():
     '''
     Test if the time to detection gives sensible results
