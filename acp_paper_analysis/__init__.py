@@ -353,6 +353,17 @@ def time_to_detection(
         )
 
 
+def solid_angle_of_cone(apex_angle):
+    '''
+    WIKI:
+    solid angle of cone with apex angle 2θ =
+    area of a spherical cap on a unit sphere
+
+    returns steradian
+    '''
+    return 2*np.pi*(1-np.cos(apex_angle))
+
+
 def get_effective_area_figure(
         effective_area_dict
         ):

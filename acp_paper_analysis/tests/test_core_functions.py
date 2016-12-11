@@ -142,3 +142,12 @@ def test_time_to_detection():
 
     assert t_est < 360  # check that the thing is detected faster than 0.1h
     assert t_est > 0  # check that the thing is detectable
+
+
+def test_solid_angle_of_cone():
+    '''
+    This test is to check if the solid angle calculation is correct.
+    '''
+    assert np.isclose(acp.solid_angle_of_cone(apex_angle=np.pi), 4*np.pi)
+    assert np.isclose(acp.solid_angle_of_cone(apex_angle=np.pi/2.), 2*np.pi)
+    assert np.isclose(acp.solid_angle_of_cone(apex_angle=0.), 0.)
