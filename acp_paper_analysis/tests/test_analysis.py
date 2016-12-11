@@ -74,7 +74,7 @@ def test_get_rates_over_energy_figure():
         base_area_in_cm_2=1e4
         )
 
-    figure, figure_data, lepton_rate, prot_rate = acp.get_rates_over_energy_figure(
+    figure, data = acp.get_rates_over_energy_figure(
         effective_area_dict,
         proton_spec=proton_flux,
         electron_positron_spec=electron_positron_flux,
@@ -87,11 +87,11 @@ def test_get_rates_over_energy_figure():
         )
 
     assert isinstance(figure, matplotlib.figure.Figure)
-    assert isinstance(figure_data, dict)
-    assert lepton_rate > 0.
-    assert lepton_rate < 1e6
-    assert prot_rate > 0.
-    assert prot_rate < 1e6
+    assert isinstance(data, dict)
+    for data_name in data:
+        assert isinstance(
+            data[data_name], numpy.ndarray
+            )
 
 
 def test_analysis():

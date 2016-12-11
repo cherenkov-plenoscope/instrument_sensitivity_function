@@ -388,9 +388,8 @@ def get_effective_area_figure(
     '''
     figure = plt.figure()
 
-    colors = ['k', 'c', 'm', 'b', 'r', 'g']
+    colors = ['c', 'k', 'm', 'b', 'r', 'g']
     linestyles = ['-', '--', '-.', ':']
-    last_cut = ''
 
     for i, particle in enumerate(effective_area_dict):
         for j, cut in enumerate(effective_area_dict[particle]):
@@ -417,9 +416,94 @@ def get_rates_over_energy_figure(
         f_0=1e-10,
         gamma=-2.6
         ):
-    figure = plt.figure()
-    figure_data = {}
-    lepton_rate = 0.
-    proton_rate = 0.
+    '''
+    Get a plot with rates over energy for the stated:
+    spectra, aeff, rigidity cutoff, relative second spectrum intensity,
+    roi radius (half apex angle of the viewcone), and gamma ray source
+    parameters.
+    '''
+    # prepare constants
+    e_mass = 0.511e-6  # in TeV/c^2
+    p_mass = 0.938272e-3
+    e_energy_cutoff = rigidity_to_energy(
+        rigidity_cutoff_in_tev,
+        charge=1,
+        mass=e_mass)
+    p_energy_cutoff = rigidity_to_energy(
+        rigidity_cutoff_in_tev,
+        charge=1,
+        mass=p_mass)
 
-    return figure, figure_data, lepton_rate, proton_rate
+    figure = plt.figure()
+    data = {}
+
+    colors = ['c', 'k', 'm', 'b', 'r', 'g']
+    linestyles = ['-', '--', '-.', ':']
+
+    for i, particle in enumerate(effective_area_dict):
+        for j, cut in enumerate(effective_area_dict[particle]):
+            label = particle+' '+cut
+            style = colors[j]+linestyles[i]
+
+            if 'electron' in particle:
+                plot_data, rate = plot_rate_over_energy_charged_diffuse(
+                    effective_area_dict[particle][cut],
+                    style=style,
+                    label=label,
+                    charged_spec=electron_positron_spec,
+                    cutoff=e_energy_cutoff,
+                    relative_flux_below_cutoff=relative_flux_below_cutoff,
+                    roi_radius_in_deg=roi_radius_in_deg
+                    )
+            elif 'proton' in particle:
+                plot_data, rate = plot_rate_over_energy_charged_diffuse(
+                    effective_area_dict[particle][cut],
+                    style=style,
+                    label=label,
+                    charged_spec=p_mass,
+                    cutoff=p_energy_cutoff,
+                    relative_flux_below_cutoff=relative_flux_below_cutoff,
+                    roi_radius_in_deg=roi_radius_in_deg
+                    )
+            elif 'gamma' in particle:
+                plot_data, rate = plot_rate_over_energy_power_law_source(
+                    effective_area_dict[particle][cut],
+                    style=style,
+                    label=label,
+                    e_0=e_0,
+                    f_0=f_0,
+                    gamma=gamma
+                    )
+            data[particle+'_'+cut+'_rate_plot_data'] = plot_data
+            data[particle+'_'+cut+'_integral_rate'] = rate
+
+    plt.legend(loc='best')
+
+    return figure, data
+
+
+def plot_rate_over_energy_charged_diffuse(
+        effective_area,
+        style,
+        label,
+        charged_spec,
+        cutoff,
+        relative_flux_below_cutoff,
+        roi_radius_in_deg
+        ):
+    plot_data = np.array([])
+    rate = np.array([])
+    return plot_data, rate
+
+
+def plot_rate_over_energy_power_law_source(
+        effective_area,
+        style,
+        label,
+        e_0,
+        f_0,
+        gamma
+        ):
+    plot_data = np.array([])
+    rate = np.array([])
+    return plot_data, rate
