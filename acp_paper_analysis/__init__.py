@@ -382,7 +382,7 @@ def rigidity_to_energy(rigidity, charge, mass):
     output:
     TeV
     '''
-    return np.sqrt((rigidity*charge)**2 + mass**2)
+    return np.sqrt((rigidity*charge)**2 + mass**2) - mass
 
 
 def get_effective_area_figure(

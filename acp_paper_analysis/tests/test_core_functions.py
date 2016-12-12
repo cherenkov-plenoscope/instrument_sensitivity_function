@@ -133,7 +133,7 @@ def test_rigidity_to_energy():
             10e-3,
             charge=1,
             mass=0.938272e-3  # proton
-            ), 0.010043921263430134
+            ), 0.009105649263430134
         )
 
 
