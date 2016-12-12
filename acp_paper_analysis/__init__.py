@@ -359,15 +359,16 @@ def time_to_detection(
         )
 
 
-def solid_angle_of_cone(apex_angle):
+def solid_angle_of_cone(apex_angle_in_deg):
     '''
     WIKI:
     solid angle of cone with apex angle 2θ =
     area of a spherical cap on a unit sphere
 
-    returns steradian
+    input: deg
+    returns: steradian
     '''
-    return 2*np.pi*(1-np.cos(apex_angle))
+    return 2*np.pi*(1-np.cos(apex_angle_in_deg/180.*np.pi))
 
 
 def rigidity_to_energy(rigidity, charge, mass):
@@ -386,7 +387,8 @@ def rigidity_to_energy(rigidity, charge, mass):
 
 
 def get_effective_area_figure(
-        effective_area_dict
+        effective_area_dict,
+        roi_radius_in_deg=0.5
         ):
     '''
     Get a plot showing the effective areas
@@ -402,13 +404,55 @@ def get_effective_area_figure(
             label = particle+' '+cut
             style = colors[j]+linestyles[i]
 
-            gls.plot_effective_area(
+            roi = None
+            if 'electron' in particle or 'proton' in particle:
+                roi = roi_radius_in_deg
+
+            plot_effective_area(
                 effective_area_dict[particle][cut],
                 style=style,
-                label=label)
+                label=label,
+                roi_radius_in_deg=roi
+                )
 
     plt.legend(loc='best')
     return figure
+
+
+def plot_effective_area(
+        a_eff_interpol, style='k', label='', roi_radius_in_deg=None):
+    '''
+    fill a plot with the effective energy from the supplied
+    interpolated data
+    '''
+    start = a_eff_interpol.x.min()
+    stop = a_eff_interpol.x.max()
+    samples = 1000
+
+    solid_angle = 1.
+    if roi_radius_in_deg is not None:
+        solid_angle = solid_angle_of_cone(roi_radius_in_deg)
+
+    energy_samples = np.linspace(start, stop, samples)
+    area_samples = np.array([
+        a_eff_interpol(energy)*solid_angle
+        for energy
+        in energy_samples
+        ])
+
+    label_string = label
+    if roi_radius_in_deg is not None:
+        label_string = (label_string + ', FoV radius: ' +
+        str(roi_radius_in_deg) + '$^{\\circ}$')
+    plt.plot(np.power(10, energy_samples), area_samples/10000.,
+             style,
+             label=label_string)
+
+    plt.loglog()
+    plt.title('Effective Area')
+    plt.xlabel('Energy / TeV')
+    plt.ylabel('A$_{eff}$ / m$^2$')
+    return
 
 
 def get_rates_over_energy_figure(

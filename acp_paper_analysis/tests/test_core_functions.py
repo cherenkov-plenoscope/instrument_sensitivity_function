@@ -162,6 +162,6 @@ def test_solid_angle_of_cone():
     '''
     This test is to check if the solid angle calculation is correct.
     '''
-    assert np.isclose(acp.solid_angle_of_cone(apex_angle=np.pi), 4*np.pi)
-    assert np.isclose(acp.solid_angle_of_cone(apex_angle=np.pi/2.), 2*np.pi)
-    assert np.isclose(acp.solid_angle_of_cone(apex_angle=0.), 0.)
+    assert np.isclose(acp.solid_angle_of_cone(apex_angle_in_deg=180), 4*np.pi)
+    assert np.isclose(acp.solid_angle_of_cone(apex_angle_in_deg=90), 2*np.pi)
+    assert np.isclose(acp.solid_angle_of_cone(apex_angle_in_deg=0.), 0.)
