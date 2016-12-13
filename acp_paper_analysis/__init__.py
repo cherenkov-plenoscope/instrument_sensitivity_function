@@ -510,7 +510,7 @@ def get_rates_over_energy_figure(
                     effective_area_dict[particle][cut],
                     style=style,
                     label=label,
-                    charged_spec=p_mass,
+                    charged_spec=proton_spec,
                     cutoff=p_energy_cutoff,
                     relative_flux_below_cutoff=relative_flux_below_cutoff,
                     roi_radius_in_deg=roi_radius_in_deg
