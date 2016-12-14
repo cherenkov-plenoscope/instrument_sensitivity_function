@@ -94,18 +94,18 @@ def test_get_crab_spectrum():
     assert crab_spectrum(-2) < 1e0
 
     # check few specific fluxes for sanity
-    rel_accuracy_margin = 0.5  # 50 percent accurate should be OK as test
+    rel_accuracy_margin = 0.4  # 40 percent accurate should be OK as test
     log10_e1 = -1
     log10_e2 = +1
     result_1 = 7e-9
     result_2 = 5e-14
     assert np.abs(
         crab_spectrum(log10_e1) - result_1
-        )/crab_spectrum(log10_e1) < rel_accuracy_margin
+        )/result_1 < rel_accuracy_margin
 
     assert np.abs(
         crab_spectrum(log10_e2) - result_2
-        )/crab_spectrum(log10_e2) < rel_accuracy_margin
+        )/result_2 < rel_accuracy_margin
 
 
 def test_get_3fgl_catalog():

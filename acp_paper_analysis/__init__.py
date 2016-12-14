@@ -35,13 +35,6 @@ def analysis(
     effective_area_dict = get_interpolated_effective_areas(in_folder)
     resource_dict = acp.get_resources_paths()
 
-    # get magic sensitivity parameters as stated in ul paper
-    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
-    magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
-    magic_alpha = 0.2  # five off regions
-
-    fermi_lat_isez = acp.get_fermi_lat_isez(resource_dict['isez']['fermi_lat'])
-
     electron_positron_flux = acp.get_cosmic_ray_flux_interpol(
         resource_dict['fluxes']['electron_positron'],
         base_energy_in_TeV=1e-3,
@@ -56,8 +49,9 @@ def analysis(
         )
 
     # start producing plots and data products
-    effective_area_figure = get_effective_area_figure(effective_area_dict)
-    rates_figure, data = get_rates_over_energy_figure(
+    effective_area_figure = get_effective_area_figure(
+        effective_area_dict, roi_radius_in_deg=roi_radius_in_deg)
+    rates_figure, rates_data = get_rates_over_energy_figure(
         effective_area_dict,
         proton_spec=proton_spec,
         electron_positron_spec=electron_positron_flux,
@@ -69,10 +63,27 @@ def analysis(
         gamma=gamma
         )
 
+    # get the integral bg rate in on region (roi region)
+    acp_sigma_bg = (
+        rates_data['electron_positron_cut_integral_rate'] +
+        rates_data['proton_cut_integral_rate']
+        )
+
+    # make a coparison of the Fermi-LAT, MAGIC,
+    # and ACP integral spectral exclusion zone
+    plotting_energy_range = [0.1e-3, 10]  # in TeV
+    isez_figure, isez_data = get_isez_figure(
+        resource_dict,
+        acp_sigma_bg=acp_sigma_bg,
+        energy_range=plotting_energy_range
+        )
+
     figures = {
         'effective_area_figure': effective_area_figure,
-        'rates_figure': rates_figure
+        'rates_figure': rates_figure,
+        'isez_figure': isez_figure
         }
+    data = merge_dicts(rates_data)
 
     dictionary = {
         'plots': figures,
@@ -80,6 +91,17 @@ def analysis(
         }
 
     return dictionary
+
+
+def merge_dicts(*dict_args):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
 
 
 def get_interpolated_effective_areas(in_folder):
@@ -422,6 +444,9 @@ def get_effective_area_figure(
                 roi_radius_in_deg=roi
                 )
 
+    title_string = ('Effective Area, FoV radius: ' +
+        str(roi_radius_in_deg) + '$^{\\circ}$')
+    plt.title(title_string)
     plt.legend(loc='best')
     return figure
 
@@ -452,11 +477,7 @@ def plot_effective_area(
              label=label)
 
     plt.loglog()
-    title_string = 'Effective Area'
-    if roi_radius_in_deg is not None:
-        title_string = (title_string + ', FoV radius: ' +
-        str(roi_radius_in_deg) + '$^{\\circ}$')
-    plt.title(title_string)
+
     plt.xlabel('Energy / TeV')
     plt.ylabel('A$_{eff}$ / m$^2$')
     return
@@ -534,6 +555,9 @@ def get_rates_over_energy_figure(
             data[particle+'_'+cut+'_rate_plot_data'] = plot_data
             data[particle+'_'+cut+'_integral_rate'] = rate
 
+    title_string = ('Diff. Rate' + ', FoV radius: ' +
+        str(roi_radius_in_deg) + '$^{\\circ}$')
+    plt.title(title_string)
     plt.legend(loc='best')
 
     return figure, data
@@ -561,8 +585,10 @@ def cutoff_spec(
 def plot_over_energy_log_log(
         function,
         energy_range,
+        scale_factor=1.,
         style='k',
         label='',
+        alpha=1.,
         ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
         log_resolution=0.05):
     '''
@@ -573,8 +599,9 @@ def plot_over_energy_log_log(
         np.log10(energy_range[1])+0.05,
         log_resolution)
     e_y = np.array([function(x) for x in e_x])
+    e_y = e_y*scale_factor
 
-    plt.plot(e_x, e_y, style, label=label)
+    plt.plot(e_x, e_y, style, label=label, alpha=alpha)
     plt.loglog()
 
     plt.xlabel("E / TeV")
@@ -605,7 +632,12 @@ def plot_rate_over_energy_charged_diffuse(
         solid_angle)
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
-        integrand, energy_range, style, label, ylabel='Rate / (s TeV)$^{-1}$')
+        integrand,
+        energy_range=energy_range,
+        style=style,
+        label=label,
+        ylabel='Rate / (s TeV)$^{-1}$'
+        )
 
     points_to_watch_out = [energy_range[0], energy_range[0]*10]
     if np.log10(cutoff) > energy_range[0] and np.log10(cutoff) < energy_range[1]:
@@ -639,7 +671,11 @@ def plot_rate_over_energy_power_law_source(
         effective_area(np.log10(x)))
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
-        integrand, energy_range, style, label, ylabel='Rate / (s TeV)$^{-1}$')
+        integrand,
+        energy_range=energy_range,
+        style=style,
+        label=label,
+        ylabel='Rate / (s TeV)$^{-1}$')
 
     points_to_watch_out = [energy_range[0], energy_range[0]*10]
 
@@ -654,3 +690,51 @@ def plot_rate_over_energy_power_law_source(
 
     plot_data = np.vstack((plot_data_x, plot_data_y)).T
     return plot_data, rate
+
+
+def get_isez_figure(
+        resource_dict,
+        acp_sigma_bg,
+        energy_range,
+        acp_alpha=1./3.,
+        t_obs=50.*3600.,
+        is_test=False
+        ):
+    '''
+    This function shall return a set of isze curves, in a figure and as data
+    Furthermore it shall compare everything to te crab nebula emission.
+    '''
+    crab_broad_spectrum = get_crab_spectrum(resource_dict['crab']['broad_sed'])
+
+    # get magic sensitivity parameters as stated in ul paper
+    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
+    magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
+    magic_alpha = 0.2  # five off regions
+
+    fermi_lat_isez = acp.get_fermi_lat_isez(resource_dict['isez']['fermi_lat'])
+
+    figure = plt.figure()
+    data = np.array([1.])
+
+    for i in range(4):
+        plot_over_energy_log_log(
+            crab_broad_spectrum,
+            energy_range,
+            scale_factor=np.power(10., (-1)*i),
+            style='k--',
+            label='%.3f C.U.' % np.power(10., (-1)*i),
+            alpha=1./(1.+i),
+            ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
+            log_resolution=0.05)
+
+    # plot_over_energy_log_log(
+    #     fermi_lat_isez,
+    #     gls.get_energy_range(fermi_lat_isez),
+    #     style='k',
+    #     label='Fermi-LAT',
+    #     ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
+    #     log_resolution=0.05)
+
+    plt.title('Integral Spectral Exclusion Zones')
+    plt.legend(loc='best')
+    return figure, data
