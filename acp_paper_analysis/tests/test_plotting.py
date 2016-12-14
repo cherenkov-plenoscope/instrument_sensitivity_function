@@ -69,7 +69,7 @@ def test_plot_rate_over_energy_charged_diffuse():
         plot_power_slope=3.,
         base_area_in_cm_2=1e4
         )
-    cutoff = 10e-3
+    cutoff = 0.9
     relative_flux_below_cutoff = 0.1
     roi_radius_in_deg = 0.5
 

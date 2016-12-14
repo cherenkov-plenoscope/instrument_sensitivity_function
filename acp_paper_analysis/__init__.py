@@ -9,6 +9,7 @@ import pyfits
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interpolate
+from scipy import integrate
 
 import acp_paper_analysis as acp
 import gamma_limits_sensitivity as gls
@@ -540,6 +541,8 @@ def cutoff_spec(
     '''
     this is a function in order to check the cutoff
     is implemented
+
+    cutoff / TeV
     '''
     return lambda x: (
         charged_spec(x) *
@@ -547,6 +550,31 @@ def cutoff_spec(
             (1-relative_flux_below_cutoff) +
             relative_flux_below_cutoff)     # heaviside function
         )
+
+
+def plot_over_energy_log_log(
+        function,
+        energy_range,
+        style='k',
+        label='',
+        ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
+        log_resolution=0.05):
+    '''
+    This function plots anything (in log log) over energy
+    '''
+    e_x = 10**np.arange(
+        np.log10(energy_range[0]),
+        np.log10(energy_range[1])+0.05,
+        log_resolution)
+    e_y = np.array([function(x) for x in e_x])
+
+    plt.plot(e_x, e_y, style, label=label)
+    plt.loglog()
+
+    plt.xlabel("E / TeV")
+    plt.ylabel(ylabel)
+
+    return e_x, e_y
 
 
 def plot_rate_over_energy_charged_diffuse(
@@ -562,21 +590,31 @@ def plot_rate_over_energy_charged_diffuse(
     energy_range = gls.get_energy_range(effective_area)
     solid_angle = acp.solid_angle_of_cone(roi_radius_in_deg)
 
-    charged_spec_cutoff = cutoff_spec(charged_spec, cutoff, relative_flux_below_cutoff)
+    charged_spec_cutoff = cutoff_spec(
+        charged_spec, cutoff, relative_flux_below_cutoff)
 
-    integrand = lambda x: effective_area(x)*solid_angle
+    integrand = lambda x: (
+        charged_spec_cutoff(np.log10(x)) *
+        effective_area(np.log10(x)) *
+        solid_angle)
 
-    return integrate.quad(
+    plot_data_x, plot_data_y = plot_over_energy_log_log(
+        integrand, energy_range, style, label, ylabel='Rate / (s TeV)$^{-1}$')
+
+    points_to_watch_out = [energy_range[0], energy_range[0]*10]
+    if np.log10(cutoff) > energy_range[0] and np.log10(cutoff) < energy_range[1]:
+        points_to_watch_out.append(np.log10(cutoff))
+
+    rate = np.array(integrate.quad(
         integrand,
         energy_range[0],
         energy_range[1],
         limit=10000,
         full_output=1,
-        points=[energy_range[0], energy_range[0]*10]
-        )[0]
+        points=points_to_watch_out
+        )[0])
 
-    plot_data = np.array([])
-    rate = np.array([])
+    plot_data = np.vstack((plot_data_x, plot_data_y)).T
     return plot_data, rate
 
 
@@ -588,6 +626,25 @@ def plot_rate_over_energy_power_law_source(
         f_0,
         gamma
         ):
-    plot_data = np.array([])
-    rate = np.array([])
+    energy_range = gls.get_energy_range(effective_area)
+
+    integrand = lambda x: (
+        gls.power_law(x, f_0=f_0, gamma=gamma, e_0=e_0) *
+        effective_area(np.log10(x)))
+
+    plot_data_x, plot_data_y = plot_over_energy_log_log(
+        integrand, energy_range, style, label, ylabel='Rate / (s TeV)$^{-1}$')
+
+    points_to_watch_out = [energy_range[0], energy_range[0]*10]
+
+    rate = np.array(integrate.quad(
+        integrand,
+        energy_range[0],
+        energy_range[1],
+        limit=10000,
+        full_output=1,
+        points=points_to_watch_out
+        )[0])
+
+    plot_data = np.vstack((plot_data_x, plot_data_y)).T
     return plot_data, rate

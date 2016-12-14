@@ -182,7 +182,14 @@ def test_cutoff_spec():
     cutoff = 10e-3  # 10GeV
     relative_flux_below_cutoff = 0.1
 
-    cutoff_func = acp.cutoff_spec(charged_spec, cutoff, relative_flux_below_cutoff)
+    cutoff_func = acp.cutoff_spec(
+        charged_spec, cutoff, relative_flux_below_cutoff)
+
+    assert bool(np.isclose(
+        charged_spec(np.log10(cutoff*0.3)),
+        cutoff_func(np.log10(cutoff*0.3))
+        )) is False
+
     assert np.isclose(
         charged_spec(np.log10(cutoff*1.01)),
         cutoff_func(np.log10(cutoff*1.01))
@@ -195,7 +202,8 @@ def test_cutoff_spec():
     cutoff = 1.124e-3  # 10GeV
     relative_flux_below_cutoff = 0.461346
 
-    cutoff_func = acp.cutoff_spec(charged_spec, cutoff, relative_flux_below_cutoff)
+    cutoff_func = acp.cutoff_spec(
+        charged_spec, cutoff, relative_flux_below_cutoff)
     assert np.isclose(
         charged_spec(np.log10(cutoff*4.01)),
         cutoff_func(np.log10(cutoff*4.01))
