@@ -165,3 +165,42 @@ def test_solid_angle_of_cone():
     assert np.isclose(acp.solid_angle_of_cone(apex_angle_in_deg=180), 4*np.pi)
     assert np.isclose(acp.solid_angle_of_cone(apex_angle_in_deg=90), 2*np.pi)
     assert np.isclose(acp.solid_angle_of_cone(apex_angle_in_deg=0.), 0.)
+
+
+def test_cutoff_spec():
+    '''
+    Test the cutoff spectrum is actually working
+    '''
+    resource_dict = acp.get_resources_paths()
+    charged_spec = acp.get_cosmic_ray_flux_interpol(
+        resource_dict['fluxes']['electron_positron'],
+        base_energy_in_TeV=1e-3,
+        plot_power_slope=3.,
+        base_area_in_cm_2=1e4
+        )
+
+    cutoff = 10e-3  # 10GeV
+    relative_flux_below_cutoff = 0.1
+
+    cutoff_func = acp.cutoff_spec(charged_spec, cutoff, relative_flux_below_cutoff)
+    assert np.isclose(
+        charged_spec(np.log10(cutoff*1.01)),
+        cutoff_func(np.log10(cutoff*1.01))
+        )
+    assert np.isclose(
+        charged_spec(np.log10(cutoff*0.9)),
+        cutoff_func(np.log10(cutoff*0.9))/relative_flux_below_cutoff
+        )
+
+    cutoff = 1.124e-3  # 10GeV
+    relative_flux_below_cutoff = 0.461346
+
+    cutoff_func = acp.cutoff_spec(charged_spec, cutoff, relative_flux_below_cutoff)
+    assert np.isclose(
+        charged_spec(np.log10(cutoff*4.01)),
+        cutoff_func(np.log10(cutoff*4.01))
+        )
+    assert np.isclose(
+        charged_spec(np.log10(cutoff*0.6)),
+        cutoff_func(np.log10(cutoff*0.6))/relative_flux_below_cutoff
+        )

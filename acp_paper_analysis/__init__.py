@@ -532,6 +532,23 @@ def get_rates_over_energy_figure(
     return figure, data
 
 
+def cutoff_spec(
+        charged_spec,
+        cutoff,
+        relative_flux_below_cutoff
+        ):
+    '''
+    this is a function in order to check the cutoff
+    is implemented
+    '''
+    return lambda x: (
+        charged_spec(x) *
+        (0.5*(np.sign(10**x-cutoff)+1) *
+            (1-relative_flux_below_cutoff) +
+            relative_flux_below_cutoff)     # heaviside function
+        )
+
+
 def plot_rate_over_energy_charged_diffuse(
         effective_area,
         style,
@@ -541,6 +558,23 @@ def plot_rate_over_energy_charged_diffuse(
         relative_flux_below_cutoff,
         roi_radius_in_deg
         ):
+
+    energy_range = gls.get_energy_range(effective_area)
+    solid_angle = acp.solid_angle_of_cone(roi_radius_in_deg)
+
+    charged_spec_cutoff = cutoff_spec(charged_spec, cutoff, relative_flux_below_cutoff)
+
+    integrand = lambda x: effective_area(x)*solid_angle
+
+    return integrate.quad(
+        integrand,
+        energy_range[0],
+        energy_range[1],
+        limit=10000,
+        full_output=1,
+        points=[energy_range[0], energy_range[0]*10]
+        )[0]
+
     plot_data = np.array([])
     rate = np.array([])
     return plot_data, rate
