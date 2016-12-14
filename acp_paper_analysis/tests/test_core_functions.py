@@ -22,7 +22,7 @@ def test_get_resources_paths():
             assert os.path.isfile(resource_dict[prim_type][sub_type])
 
 
-def test_get_proton_positron_flux():
+def test_get_electron_positron_flux():
     '''
     Test if the function really returns sensible lepton fluxes
     and convert it to units of TeV, cm^2, sec, sr
