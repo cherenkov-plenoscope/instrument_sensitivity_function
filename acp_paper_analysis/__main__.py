@@ -44,7 +44,7 @@ def main_logic(arguments, dictionary):
         for data_name in dictionary['data']:
             np.savetxt(
                 arguments['--out']+'/'+data_name+'.csv',
-                dictionary['data'][data_name],
+                np.array(dictionary['data'][data_name]),
                 fmt='%.6e',
                 header=(data_name + ', written: ' +
                         datetime.datetime.now().strftime(

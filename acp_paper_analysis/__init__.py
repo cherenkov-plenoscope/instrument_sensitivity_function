@@ -48,7 +48,7 @@ def analysis(
         plot_power_slope=3.,
         base_area_in_cm_2=1e4
         )
-    proton_flux = acp.get_cosmic_ray_flux_interpol(
+    proton_spec = acp.get_cosmic_ray_flux_interpol(
         resource_dict['fluxes']['proton'],
         base_energy_in_TeV=1e-3,
         plot_power_slope=2.7,
@@ -57,16 +57,22 @@ def analysis(
 
     # start producing plots and data products
     effective_area_figure = get_effective_area_figure(effective_area_dict)
-
-    one_data = np.array([0.])
+    rates_figure, data = get_rates_over_energy_figure(
+        effective_area_dict,
+        proton_spec=proton_spec,
+        electron_positron_spec=electron_positron_flux,
+        rigidity_cutoff_in_tev=rigidity_cutoff_in_tev,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        roi_radius_in_deg=roi_radius_in_deg,
+        e_0=e_0,
+        f_0=f_0,
+        gamma=gamma
+        )
 
     figures = {
-        'effective_area_figure': effective_area_figure
+        'effective_area_figure': effective_area_figure,
+        'rates_figure': rates_figure
         }
-
-    data = {
-        'one_data': one_data
-    }
 
     dictionary = {
         'plots': figures,
@@ -441,16 +447,16 @@ def plot_effective_area(
         in energy_samples
         ])
 
-    label_string = label
-    if roi_radius_in_deg is not None:
-        label_string = (label_string + ', FoV radius: ' +
-        str(roi_radius_in_deg) + '$^{\\circ}$')
     plt.plot(np.power(10, energy_samples), area_samples/10000.,
              style,
-             label=label_string)
+             label=label)
 
     plt.loglog()
-    plt.title('Effective Area')
+    title_string = 'Effective Area'
+    if roi_radius_in_deg is not None:
+        title_string = (title_string + ', FoV radius: ' +
+        str(roi_radius_in_deg) + '$^{\\circ}$')
+    plt.title(title_string)
     plt.xlabel('Energy / TeV')
     plt.ylabel('A$_{eff}$ / m$^2$')
     return
@@ -605,14 +611,14 @@ def plot_rate_over_energy_charged_diffuse(
     if np.log10(cutoff) > energy_range[0] and np.log10(cutoff) < energy_range[1]:
         points_to_watch_out.append(np.log10(cutoff))
 
-    rate = np.array(integrate.quad(
+    rate = np.array([integrate.quad(
         integrand,
         energy_range[0],
         energy_range[1],
         limit=10000,
         full_output=1,
         points=points_to_watch_out
-        )[0])
+        )[0]])
 
     plot_data = np.vstack((plot_data_x, plot_data_y)).T
     return plot_data, rate
@@ -637,14 +643,14 @@ def plot_rate_over_energy_power_law_source(
 
     points_to_watch_out = [energy_range[0], energy_range[0]*10]
 
-    rate = np.array(integrate.quad(
+    rate = np.array([integrate.quad(
         integrand,
         energy_range[0],
         energy_range[1],
         limit=10000,
         full_output=1,
         points=points_to_watch_out
-        )[0])
+        )[0]])
 
     plot_data = np.vstack((plot_data_x, plot_data_y)).T
     return plot_data, rate
