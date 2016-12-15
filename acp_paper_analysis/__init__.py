@@ -19,7 +19,7 @@ def analysis(
         in_folder,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
-        roi_radius_in_deg=0.5,
+        roi_radius_in_deg=1.,
         e_0=1.,
         f_0=1e-10,
         gamma=-2.6,
@@ -33,15 +33,15 @@ def analysis(
     '''
     # prepare the data
     effective_area_dict = get_interpolated_effective_areas(in_folder)
-    resource_dict = acp.get_resources_paths()
+    resource_dict = get_resources_paths()
 
-    electron_positron_flux = acp.get_cosmic_ray_flux_interpol(
+    electron_positron_flux = get_cosmic_ray_flux_interpol(
         resource_dict['fluxes']['electron_positron'],
         base_energy_in_TeV=1e-3,
         plot_power_slope=3.,
         base_area_in_cm_2=1e4
         )
-    proton_spec = acp.get_cosmic_ray_flux_interpol(
+    proton_spec = get_cosmic_ray_flux_interpol(
         resource_dict['fluxes']['proton'],
         base_energy_in_TeV=1e-3,
         plot_power_slope=2.7,
@@ -71,7 +71,7 @@ def analysis(
 
     # make a coparison of the Fermi-LAT, MAGIC,
     # and ACP integral spectral exclusion zone
-    plotting_energy_range = [0.1e-3, 10]  # in TeV
+    plotting_energy_range = [0.1e-3, 10.]  # in TeV
     isez_figure, isez_data = get_isez_figure(
         resource_dict,
         acp_sigma_bg=acp_sigma_bg,
@@ -489,9 +489,9 @@ def get_rates_over_energy_figure(
         electron_positron_spec,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
-        roi_radius_in_deg=0.5,
+        roi_radius_in_deg=1.0,
         e_0=1.,
-        f_0=1e-10,
+        f_0=3e-11,
         gamma=-2.6
         ):
     '''
@@ -517,7 +517,7 @@ def get_rates_over_energy_figure(
 
     colors = ['c', 'k', 'm', 'b', 'r', 'g']
     linestyles = ['-', '--', '-.', ':']
-
+    
     for i, particle in enumerate(effective_area_dict):
         for j, cut in enumerate(effective_area_dict[particle]):
             label = particle+' '+cut
@@ -559,7 +559,6 @@ def get_rates_over_energy_figure(
         str(roi_radius_in_deg) + '$^{\\circ}$')
     plt.title(title_string)
     plt.legend(loc='best')
-
     return figure, data
 
 
@@ -594,11 +593,13 @@ def plot_over_energy_log_log(
     '''
     This function plots anything (in log log) over energy
     '''
+    print(label)
     e_x = 10**np.arange(
         np.log10(energy_range[0]),
         np.log10(energy_range[1])+0.05,
         log_resolution)
-    e_y = np.array([function(x) for x in e_x])
+
+    e_y = np.array([function(np.log10(x)) for x in e_x])
     e_y = e_y*scale_factor
 
     plt.plot(e_x, e_y, style, label=label, alpha=alpha)
@@ -626,13 +627,18 @@ def plot_rate_over_energy_charged_diffuse(
     charged_spec_cutoff = cutoff_spec(
         charged_spec, cutoff, relative_flux_below_cutoff)
 
+    diff_rate = lambda x: (
+        charged_spec_cutoff(x) *
+        effective_area(x) *
+        solid_angle)
+
     integrand = lambda x: (
         charged_spec_cutoff(np.log10(x)) *
         effective_area(np.log10(x)) *
         solid_angle)
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
-        integrand,
+        diff_rate,
         energy_range=energy_range,
         style=style,
         label=label,
@@ -640,8 +646,8 @@ def plot_rate_over_energy_charged_diffuse(
         )
 
     points_to_watch_out = [energy_range[0], energy_range[0]*10]
-    if np.log10(cutoff) > energy_range[0] and np.log10(cutoff) < energy_range[1]:
-        points_to_watch_out.append(np.log10(cutoff))
+    if cutoff > energy_range[0] and cutoff < energy_range[1]:
+        points_to_watch_out.append(cutoff)
 
     rate = np.array([integrate.quad(
         integrand,
@@ -665,13 +671,18 @@ def plot_rate_over_energy_power_law_source(
         gamma
         ):
     energy_range = gls.get_energy_range(effective_area)
+    print(energy_range)
+
+    diff_rate = lambda x: (
+        gls.power_law(10**x, f_0=f_0, gamma=gamma, e_0=e_0) *
+        effective_area(x))
 
     integrand = lambda x: (
         gls.power_law(x, f_0=f_0, gamma=gamma, e_0=e_0) *
         effective_area(np.log10(x)))
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
-        integrand,
+        diff_rate,
         energy_range=energy_range,
         style=style,
         label=label,
@@ -725,16 +736,17 @@ def get_isez_figure(
             label='%.3f C.U.' % np.power(10., (-1)*i),
             alpha=1./(1.+i),
             ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
-            log_resolution=0.05)
+            log_resolution=0.2)
 
-    # plot_over_energy_log_log(
-    #     fermi_lat_isez,
-    #     gls.get_energy_range(fermi_lat_isez),
-    #     style='k',
-    #     label='Fermi-LAT',
-    #     ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
-    #     log_resolution=0.05)
+    plot_over_energy_log_log(
+        fermi_lat_isez,
+        gls.get_energy_range(fermi_lat_isez),
+        style='k',
+        label='Fermi-LAT',
+        ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
+        log_resolution=0.05)
 
     plt.title('Integral Spectral Exclusion Zones')
-    plt.legend(loc='best')
+    plt.xlim(energy_range)
+    plt.legend(loc='best', fontsize=10)
     return figure, data
