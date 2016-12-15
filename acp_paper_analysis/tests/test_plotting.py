@@ -132,7 +132,8 @@ def test_plot_rate_over_energy_power_law_source():
         label=label,
         e_0=e_0,
         f_0=f_0,
-        gamma=gamma
+        gamma=gamma,
+        efficiency=1.0
         )
 
     plot_data2, rate2 = acp.plot_rate_over_energy_power_law_source(
@@ -141,7 +142,18 @@ def test_plot_rate_over_energy_power_law_source():
         label=label,
         e_0=e_0,
         f_0=f_0*1.05,
-        gamma=gamma
+        gamma=gamma,
+        efficiency=1.0
+        )
+
+    plot_data3, rate3 = acp.plot_rate_over_energy_power_law_source(
+        effective_area=effective_area,
+        style=style,
+        label=label,
+        e_0=e_0,
+        f_0=f_0*1.05,
+        gamma=gamma,
+        efficiency=0.99
         )
 
     assert isinstance(plot_data, numpy.ndarray)
@@ -155,4 +167,6 @@ def test_plot_rate_over_energy_power_law_source():
     assert rate > 0  # check that the rate is bigger than 0
 
     # check that with a higher flux norm., you get a higher rate
+    # and with higher efficiency also
     assert rate2 > rate
+    assert rate2 > rate3

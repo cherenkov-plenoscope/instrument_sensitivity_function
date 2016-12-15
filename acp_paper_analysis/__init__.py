@@ -24,6 +24,7 @@ def analysis(
         e_0=1.,
         f_0=1e-10,
         gamma=-2.6,
+        gamma_eff=1.0,
         is_test=False
         ):
     '''
@@ -66,21 +67,27 @@ def analysis(
         roi_radius_in_deg=roi_radius_in_deg,
         e_0=e_0,
         f_0=f_0,
-        gamma=gamma
+        gamma=gamma,
+        gamma_eff=gamma_eff
         )
 
     # get the integral bg rate in on region (roi region)
     acp_sigma_bg = (
-        rates_data['electron_positron_cut_integral_rate'] +
-        rates_data['proton_cut_integral_rate']
+        rates_data['electron_positron_cut_roi_rate'] +
+        rates_data['proton_cut_roi_rate']
         )
 
     # make a coparison of the Fermi-LAT, MAGIC,
     # and ACP integral spectral exclusion zone
     plotting_energy_range = [0.1e-3, 10.]  # in TeV
+    # get efficiency scaled acp aeff
+    acp_aeff_scaled = get_interpol_func_scaled(
+        effective_area_dict['gamma']['cut'],
+        gamma_eff=gamma_eff)
+
     isez_figure, isez_data = get_isez_figure(
         resource_dict,
-        acp_aeff=effective_area_dict['gamma']['cut'],
+        acp_aeff=acp_aeff_scaled,
         acp_sigma_bg=acp_sigma_bg,
         energy_range=plotting_energy_range,
         is_test=is_test
@@ -92,7 +99,7 @@ def analysis(
         'rates_figure': rates_figure,
         'isez_figure': isez_figure
         }
-    data = merge_dicts(rates_data)
+    data = merge_dicts(rates_data, isez_data)
 
     dictionary = {
         'plots': figures,
@@ -517,7 +524,8 @@ def get_rates_over_energy_figure(
         roi_radius_in_deg=1.0,
         e_0=1.,
         f_0=3e-11,
-        gamma=-2.6
+        gamma=-2.6,
+        gamma_eff=1.0
         ):
     '''
     Get a plot with rates over energy for the stated:
@@ -549,7 +557,7 @@ def get_rates_over_energy_figure(
             style = colors[j]+linestyles[i]
 
             if 'electron' in particle:
-                plot_data, rate = plot_rate_over_energy_charged_diffuse(
+                plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
                     effective_area_dict[particle][cut],
                     style=style,
                     label=label,
@@ -559,8 +567,16 @@ def get_rates_over_energy_figure(
                     roi_radius_in_deg=roi_radius_in_deg,
                     fov_in_deg=fov_in_deg
                     )
+                fov_rate = get_rate_charged_diffuse(
+                    effective_area_dict[particle][cut],
+                    charged_spec=electron_positron_spec,
+                    cutoff=e_energy_cutoff,
+                    relative_flux_below_cutoff=relative_flux_below_cutoff,
+                    roi_radius_in_deg=fov_in_deg/2.,
+                    fov_in_deg=fov_in_deg
+                    )
             elif 'proton' in particle:
-                plot_data, rate = plot_rate_over_energy_charged_diffuse(
+                plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
                     effective_area_dict[particle][cut],
                     style=style,
                     label=label,
@@ -570,17 +586,29 @@ def get_rates_over_energy_figure(
                     roi_radius_in_deg=roi_radius_in_deg,
                     fov_in_deg=fov_in_deg
                     )
+                fov_rate = get_rate_charged_diffuse(
+                    effective_area_dict[particle][cut],
+                    charged_spec=electron_positron_spec,
+                    cutoff=e_energy_cutoff,
+                    relative_flux_below_cutoff=relative_flux_below_cutoff,
+                    roi_radius_in_deg=fov_in_deg/2.,
+                    fov_in_deg=fov_in_deg
+                    )
             elif 'gamma' in particle:
-                plot_data, rate = plot_rate_over_energy_power_law_source(
+                plot_data, roi_rate = plot_rate_over_energy_power_law_source(
                     effective_area_dict[particle][cut],
                     style=style,
                     label=label,
                     e_0=e_0,
                     f_0=f_0,
-                    gamma=gamma
+                    gamma=gamma,
+                    efficiency=gamma_eff
                     )
             data[particle+'_'+cut+'_rate_plot_data'] = plot_data
-            data[particle+'_'+cut+'_integral_rate'] = rate
+            data[particle+'_'+cut+'_roi_rate'] = roi_rate
+            
+            if 'electron' in particle or 'proton' in particle:
+                data[particle+'_'+cut+'_fov_rate'] = fov_rate
 
     title_string = ('Diff. Rate' + ', FoV radius: ' +
         str(roi_radius_in_deg) + '$^{\\circ}$')
@@ -666,11 +694,6 @@ def plot_rate_over_energy_charged_diffuse(
         effective_area(x) *
         solid_angle_ratio)
 
-    integrand = lambda x: (
-        charged_spec_cutoff(np.log10(x)) *
-        effective_area(np.log10(x)) *
-        solid_angle_ratio)
-
     plot_data_x, plot_data_y = plot_over_energy_log_log(
         diff_rate,
         energy_range=energy_range,
@@ -678,6 +701,42 @@ def plot_rate_over_energy_charged_diffuse(
         label=label,
         ylabel='Rate / (s TeV)$^{-1}$'
         )
+
+    rate = get_rate_charged_diffuse(
+        effective_area=effective_area,
+        charged_spec=charged_spec,
+        cutoff=cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        roi_radius_in_deg=roi_radius_in_deg,
+        fov_in_deg=fov_in_deg
+        )
+
+    plot_data = np.vstack((plot_data_x, plot_data_y)).T
+    return plot_data, rate
+
+
+def get_rate_charged_diffuse(
+        effective_area,
+        charged_spec,
+        cutoff,
+        relative_flux_below_cutoff,
+        roi_radius_in_deg,
+        fov_in_deg
+        ):
+
+    energy_range = gls.get_energy_range(effective_area)
+    solid_angle_ratio = (
+        acp.solid_angle_of_cone(roi_radius_in_deg) /
+        acp.solid_angle_of_cone(fov_in_deg/2.)
+        )
+
+    charged_spec_cutoff = cutoff_spec(
+        charged_spec, cutoff, relative_flux_below_cutoff)
+
+    integrand = lambda x: (
+        charged_spec_cutoff(np.log10(x)) *
+        effective_area(np.log10(x)) *
+        solid_angle_ratio)
 
     points_to_watch_out = [energy_range[0], energy_range[0]*10]
     if cutoff > energy_range[0] and cutoff < energy_range[1]:
@@ -692,8 +751,7 @@ def plot_rate_over_energy_charged_diffuse(
         points=points_to_watch_out
         )[0]])
 
-    plot_data = np.vstack((plot_data_x, plot_data_y)).T
-    return plot_data, rate
+    return rate
 
 
 def plot_rate_over_energy_power_law_source(
@@ -702,17 +760,18 @@ def plot_rate_over_energy_power_law_source(
         label,
         e_0,
         f_0,
-        gamma
+        gamma,
+        efficiency
         ):
     energy_range = gls.get_energy_range(effective_area)
 
     diff_rate = lambda x: (
         gls.power_law(10**x, f_0=f_0, gamma=gamma, e_0=e_0) *
-        effective_area(x))
+        effective_area(x)*efficiency)
 
     integrand = lambda x: (
         gls.power_law(x, f_0=f_0, gamma=gamma, e_0=e_0) *
-        effective_area(np.log10(x)))
+        effective_area(np.log10(x))*efficiency)
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
         diff_rate,
@@ -793,11 +852,12 @@ def get_isez_figure(
         e_0=magic_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='b',
-        label='MAGIC 50h'
+        label='MAGIC %2.1fh'%(t_obs/3600.)
         )
 
     # plot the acp sensitivity
     acp_energy_range = gls.get_energy_range(acp_aeff)
+
     energy_x, dn_de_y = gls.plot_sens_spectrum_figure(
         sigma_bg=acp_sigma_bg,
         alpha=acp_alpha,
@@ -806,7 +866,7 @@ def get_isez_figure(
         e_0=acp_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='r',
-        label='ACP cut 50h'
+        label='ACP cut %2.1fh'%(t_obs/3600.)
         )
 
     plt.title('Integral Spectral Exclusion Zones')
@@ -814,4 +874,25 @@ def get_isez_figure(
     plt.legend(loc='best', fontsize=10)
 
     plot_data = np.vstack((energy_x, dn_de_y)).T
-    return figure, plot_data
+    plot_data_dict = {
+        'acp_isez_plot_data': plot_data
+    }
+    return figure, plot_data_dict
+
+
+def get_interpol_func_scaled(func, gamma_eff):
+    '''
+    Function to return efficiency scaled
+    effective area of the instrument
+    '''
+    x_s = np.array(func.x)
+    y_s = np.array([func(x)*gamma_eff for x in x_s])
+
+    scaled_interpol = interpolate.interp1d(
+        x_s,
+        y_s,
+        bounds_error=False,
+        fill_value=0.
+    )
+
+    return scaled_interpol
