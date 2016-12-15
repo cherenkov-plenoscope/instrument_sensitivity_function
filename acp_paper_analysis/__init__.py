@@ -53,7 +53,7 @@ def analysis(
     gamma_effective_area_figure = get_gamma_effective_area_figure(
         effective_area_dict)
 
-    charged_aperture_figure = get_charged_aperture_figure(
+    charged_acceptance_figure = get_charged_acceptance_figure(
         effective_area_dict)
 
     rates_figure, rates_data = get_rates_over_energy_figure(
@@ -80,6 +80,7 @@ def analysis(
     plotting_energy_range = [0.1e-3, 10.]  # in TeV
     isez_figure, isez_data = get_isez_figure(
         resource_dict,
+        acp_aeff=effective_area_dict['gamma']['cut'],
         acp_sigma_bg=acp_sigma_bg,
         energy_range=plotting_energy_range,
         is_test=is_test
@@ -87,7 +88,7 @@ def analysis(
 
     figures = {
         'gamma_effective_area_figure': gamma_effective_area_figure,
-        'charged_aperture_figure': charged_aperture_figure,
+        'charged_acceptance_figure': charged_acceptance_figure,
         'rates_figure': rates_figure,
         'isez_figure': isez_figure
         }
@@ -423,7 +424,7 @@ def rigidity_to_energy(rigidity, charge, mass):
     return np.sqrt((rigidity*charge)**2 + mass**2) - mass
 
 
-def get_charged_aperture_figure(
+def get_charged_acceptance_figure(
         effective_area_dict
         ):
     figure = plt.figure()
@@ -444,7 +445,7 @@ def get_charged_aperture_figure(
                     diffuse=True
                     )
 
-    plt.title('Instrument Aperture')
+    plt.title('Instrument Acceptance')
     plt.legend(loc='best', fontsize=10)
     return figure
 
@@ -739,6 +740,7 @@ def get_isez_figure(
         resource_dict,
         acp_sigma_bg,
         energy_range,
+        acp_aeff,
         acp_alpha=1./3.,
         t_obs=50.*3600.,
         is_test=False
@@ -753,6 +755,10 @@ def get_isez_figure(
     magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
     magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
     magic_alpha = 0.2  # five off regions
+    n_points_to_plot = 21
+    if is_test:
+        n_points_to_plot = 1
+    magic_energy_range = gls.get_energy_range(magic_aeff)
 
     fermi_lat_isez = acp.get_fermi_lat_isez(resource_dict['isez']['fermi_lat'])
 
@@ -774,11 +780,38 @@ def get_isez_figure(
         fermi_lat_isez,
         gls.get_energy_range(fermi_lat_isez),
         style='k',
-        label='Fermi-LAT',
+        label='Fermi-LAT 10y gal. north',
         ylabel='dN/dE / (cm$^2$ s TeV)$^{-1}$',
         log_resolution=0.05)
+
+    # magic_energy_x, magic_dn_de_y = gls.plot_sens_spectrum_figure(
+    gls.plot_sens_spectrum_figure(
+        sigma_bg=magic_sigma_bg,
+        alpha=magic_alpha,
+        t_obs=t_obs,
+        a_eff_interpol=magic_aeff,
+        e_0=magic_energy_range[0]*5.,
+        n_points_to_plot=n_points_to_plot,
+        fmt='b',
+        label='MAGIC 50h'
+        )
+
+    # plot the acp sensitivity
+    acp_energy_range = gls.get_energy_range(acp_aeff)
+    energy_x, dn_de_y = gls.plot_sens_spectrum_figure(
+        sigma_bg=acp_sigma_bg,
+        alpha=acp_alpha,
+        t_obs=t_obs,
+        a_eff_interpol=acp_aeff,
+        e_0=acp_energy_range[0]*5.,
+        n_points_to_plot=n_points_to_plot,
+        fmt='r',
+        label='ACP cut 50h'
+        )
 
     plt.title('Integral Spectral Exclusion Zones')
     plt.xlim(energy_range)
     plt.legend(loc='best', fontsize=10)
-    return figure, data
+
+    plot_data = np.vstack((energy_x, dn_de_y)).T
+    return figure, plot_data

@@ -38,7 +38,7 @@ def test_get_interpolated_effective_areas():
                 )
 
 
-def test_get_charged_aperture_figure():
+def test_get_charged_acceptance_figure():
     '''
     Test to check a drawing method. Should return figure
     '''
@@ -47,7 +47,7 @@ def test_get_charged_aperture_figure():
     )
 
     # start producing plots and data products
-    effective_area_figure = acp.get_charged_aperture_figure(
+    effective_area_figure = acp.get_charged_acceptance_figure(
         effective_area_dict)
 
     assert isinstance(effective_area_figure, matplotlib.figure.Figure)
