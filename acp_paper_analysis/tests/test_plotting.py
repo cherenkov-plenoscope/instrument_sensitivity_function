@@ -71,7 +71,8 @@ def test_plot_rate_over_energy_charged_diffuse():
         )
     cutoff = 0.9
     relative_flux_below_cutoff = 0.1
-    roi_radius_in_deg = 0.5
+    roi_radius_in_deg = 1.0
+    fov_in_deg = 6.5
 
     plot_data, rate = acp.plot_rate_over_energy_charged_diffuse(
         effective_area=effective_area,
@@ -80,7 +81,8 @@ def test_plot_rate_over_energy_charged_diffuse():
         charged_spec=charged_spec,
         cutoff=cutoff,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
-        roi_radius_in_deg=roi_radius_in_deg
+        roi_radius_in_deg=roi_radius_in_deg,
+        fov_in_deg=fov_in_deg
         )
 
     plot_data2, rate2 = acp.plot_rate_over_energy_charged_diffuse(
@@ -90,7 +92,8 @@ def test_plot_rate_over_energy_charged_diffuse():
         charged_spec=charged_spec,
         cutoff=cutoff*0.95,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
-        roi_radius_in_deg=roi_radius_in_deg
+        roi_radius_in_deg=roi_radius_in_deg,
+        fov_in_deg=fov_in_deg
         )
 
     assert isinstance(plot_data, numpy.ndarray)

@@ -555,7 +555,8 @@ def get_rates_over_energy_figure(
                     charged_spec=electron_positron_spec,
                     cutoff=e_energy_cutoff,
                     relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    roi_radius_in_deg=roi_radius_in_deg
+                    roi_radius_in_deg=roi_radius_in_deg,
+                    fov_in_deg=fov_in_deg
                     )
             elif 'proton' in particle:
                 plot_data, rate = plot_rate_over_energy_charged_diffuse(
@@ -565,7 +566,8 @@ def get_rates_over_energy_figure(
                     charged_spec=proton_spec,
                     cutoff=p_energy_cutoff,
                     relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    roi_radius_in_deg=roi_radius_in_deg
+                    roi_radius_in_deg=roi_radius_in_deg,
+                    fov_in_deg=fov_in_deg
                     )
             elif 'gamma' in particle:
                 plot_data, rate = plot_rate_over_energy_power_law_source(
@@ -645,11 +647,15 @@ def plot_rate_over_energy_charged_diffuse(
         charged_spec,
         cutoff,
         relative_flux_below_cutoff,
-        roi_radius_in_deg
+        roi_radius_in_deg,
+        fov_in_deg
         ):
 
     energy_range = gls.get_energy_range(effective_area)
-    solid_angle = acp.solid_angle_of_cone(roi_radius_in_deg)
+    solid_angle_ratio = (
+        acp.solid_angle_of_cone(roi_radius_in_deg) /
+        acp.solid_angle_of_cone(fov_in_deg/2.)
+        )
 
     charged_spec_cutoff = cutoff_spec(
         charged_spec, cutoff, relative_flux_below_cutoff)
@@ -657,12 +663,12 @@ def plot_rate_over_energy_charged_diffuse(
     diff_rate = lambda x: (
         charged_spec_cutoff(x) *
         effective_area(x) *
-        solid_angle)
+        solid_angle_ratio)
 
     integrand = lambda x: (
         charged_spec_cutoff(np.log10(x)) *
         effective_area(np.log10(x)) *
-        solid_angle)
+        solid_angle_ratio)
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
         diff_rate,
