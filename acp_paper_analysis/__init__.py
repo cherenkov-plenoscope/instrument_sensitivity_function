@@ -19,6 +19,7 @@ def analysis(
         in_folder,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
+        fov_in_deg=6.5,
         roi_radius_in_deg=1.,
         e_0=1.,
         f_0=1e-10,
@@ -49,14 +50,19 @@ def analysis(
         )
 
     # start producing plots and data products
-    effective_area_figure = get_effective_area_figure(
-        effective_area_dict, roi_radius_in_deg=roi_radius_in_deg)
+    gamma_effective_area_figure = get_gamma_effective_area_figure(
+        effective_area_dict)
+
+    charged_aperture_figure = get_charged_aperture_figure(
+        effective_area_dict)
+
     rates_figure, rates_data = get_rates_over_energy_figure(
         effective_area_dict,
         proton_spec=proton_spec,
         electron_positron_spec=electron_positron_flux,
         rigidity_cutoff_in_tev=rigidity_cutoff_in_tev,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
+        fov_in_deg=fov_in_deg,
         roi_radius_in_deg=roi_radius_in_deg,
         e_0=e_0,
         f_0=f_0,
@@ -75,11 +81,13 @@ def analysis(
     isez_figure, isez_data = get_isez_figure(
         resource_dict,
         acp_sigma_bg=acp_sigma_bg,
-        energy_range=plotting_energy_range
+        energy_range=plotting_energy_range,
+        is_test=is_test
         )
 
     figures = {
-        'effective_area_figure': effective_area_figure,
+        'gamma_effective_area_figure': gamma_effective_area_figure,
+        'charged_aperture_figure': charged_aperture_figure,
         'rates_figure': rates_figure,
         'isez_figure': isez_figure
         }
@@ -415,17 +423,12 @@ def rigidity_to_energy(rigidity, charge, mass):
     return np.sqrt((rigidity*charge)**2 + mass**2) - mass
 
 
-def get_effective_area_figure(
-        effective_area_dict,
-        roi_radius_in_deg=0.5
+def get_charged_aperture_figure(
+        effective_area_dict
         ):
-    '''
-    Get a plot showing the effective areas
-    referenced by a_eff_interpol
-    '''
     figure = plt.figure()
 
-    colors = ['c', 'k', 'm', 'b', 'r', 'g']
+    colors = ['b', 'k', 'm', 'c', 'r', 'g']
     linestyles = ['-', '--', '-.', ':']
 
     for i, particle in enumerate(effective_area_dict):
@@ -433,26 +436,47 @@ def get_effective_area_figure(
             label = particle+' '+cut
             style = colors[j]+linestyles[i]
 
-            roi = None
             if 'electron' in particle or 'proton' in particle:
-                roi = roi_radius_in_deg
+                plot_effective_area(
+                    effective_area_dict[particle][cut],
+                    style=style,
+                    label=label,
+                    diffuse=True
+                    )
 
-            plot_effective_area(
-                effective_area_dict[particle][cut],
-                style=style,
-                label=label,
-                roi_radius_in_deg=roi
-                )
+    plt.title('Instrument Aperture')
+    plt.legend(loc='best', fontsize=10)
+    return figure
 
-    title_string = ('Effective Area, FoV radius: ' +
-        str(roi_radius_in_deg) + '$^{\\circ}$')
-    plt.title(title_string)
-    plt.legend(loc='best')
+
+def get_gamma_effective_area_figure(
+        effective_area_dict
+        ):
+    figure = plt.figure()
+
+    colors = ['b', 'k', 'm', 'c', 'r', 'g']
+    linestyles = ['-', '--', '-.', ':']
+
+    for i, particle in enumerate(effective_area_dict):
+        for j, cut in enumerate(effective_area_dict[particle]):
+            label = particle+' '+cut
+            style = colors[j]+linestyles[i]
+
+            if 'gamma' in particle:
+                plot_effective_area(
+                    effective_area_dict[particle][cut],
+                    style=style,
+                    label=label,
+                    diffuse=False
+                    )
+
+    plt.title('Effective Area')
+    plt.legend(loc='best', fontsize=10)
     return figure
 
 
 def plot_effective_area(
-        a_eff_interpol, style='k', label='', roi_radius_in_deg=None):
+        a_eff_interpol, style='k', label='', diffuse=False):
     '''
     fill a plot with the effective energy from the supplied
     interpolated data
@@ -461,13 +485,9 @@ def plot_effective_area(
     stop = a_eff_interpol.x.max()
     samples = 1000
 
-    solid_angle = 1.
-    if roi_radius_in_deg is not None:
-        solid_angle = solid_angle_of_cone(roi_radius_in_deg)
-
     energy_samples = np.linspace(start, stop, samples)
     area_samples = np.array([
-        a_eff_interpol(energy)*solid_angle
+        a_eff_interpol(energy)
         for energy
         in energy_samples
         ])
@@ -480,6 +500,9 @@ def plot_effective_area(
 
     plt.xlabel('Energy / TeV')
     plt.ylabel('A$_{eff}$ / m$^2$')
+    if diffuse:
+        plt.ylabel('Ap / (m$^2$ sr)')
+        
     return
 
 
@@ -489,6 +512,7 @@ def get_rates_over_energy_figure(
         electron_positron_spec,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
+        fov_in_deg=6.5,
         roi_radius_in_deg=1.0,
         e_0=1.,
         f_0=3e-11,
@@ -515,7 +539,7 @@ def get_rates_over_energy_figure(
     figure = plt.figure()
     data = {}
 
-    colors = ['c', 'k', 'm', 'b', 'r', 'g']
+    colors = ['b', 'k', 'm', 'c', 'r', 'g']
     linestyles = ['-', '--', '-.', ':']
     
     for i, particle in enumerate(effective_area_dict):
@@ -558,7 +582,7 @@ def get_rates_over_energy_figure(
     title_string = ('Diff. Rate' + ', FoV radius: ' +
         str(roi_radius_in_deg) + '$^{\\circ}$')
     plt.title(title_string)
-    plt.legend(loc='best')
+    plt.legend(loc='best', fontsize=10)
     return figure, data
 
 
@@ -745,7 +769,7 @@ def get_isez_figure(
         gls.get_energy_range(fermi_lat_isez),
         style='k',
         label='Fermi-LAT',
-        ylabel='dN/dE / [(cm$^2$ s TeV)$^{-1}$]',
+        ylabel='dN/dE / (cm$^2$ s TeV)$^{-1}$',
         log_resolution=0.05)
 
     plt.title('Integral Spectral Exclusion Zones')
