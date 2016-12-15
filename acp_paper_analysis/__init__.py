@@ -592,8 +592,11 @@ def plot_over_energy_log_log(
         log_resolution=0.05):
     '''
     This function plots anything (in log log) over energy
+
+    The function input is expected to get energies as
+
+        function( log10(E/TeV) )
     '''
-    print(label)
     e_x = 10**np.arange(
         np.log10(energy_range[0]),
         np.log10(energy_range[1])+0.05,
@@ -671,7 +674,6 @@ def plot_rate_over_energy_power_law_source(
         gamma
         ):
     energy_range = gls.get_energy_range(effective_area)
-    print(energy_range)
 
     diff_rate = lambda x: (
         gls.power_law(10**x, f_0=f_0, gamma=gamma, e_0=e_0) *
