@@ -20,11 +20,10 @@ def analysis(
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
-        roi_radius_in_deg=1.,
         e_0=1.,
         f_0=1e-10,
         gamma=-2.6,
-        gamma_eff=1.0,
+        gamma_eff=0.67,
         is_test=False
         ):
     '''
@@ -64,7 +63,6 @@ def analysis(
         rigidity_cutoff_in_tev=rigidity_cutoff_in_tev,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
         fov_in_deg=fov_in_deg,
-        roi_radius_in_deg=roi_radius_in_deg,
         e_0=e_0,
         f_0=f_0,
         gamma=gamma,
@@ -521,7 +519,6 @@ def get_rates_over_energy_figure(
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
-        roi_radius_in_deg=1.0,
         e_0=1.,
         f_0=3e-11,
         gamma=-2.6,
@@ -564,7 +561,6 @@ def get_rates_over_energy_figure(
                     charged_spec=electron_positron_spec,
                     cutoff=e_energy_cutoff,
                     relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    roi_radius_in_deg=roi_radius_in_deg,
                     fov_in_deg=fov_in_deg
                     )
                 fov_rate = get_rate_charged_diffuse(
@@ -583,7 +579,6 @@ def get_rates_over_energy_figure(
                     charged_spec=proton_spec,
                     cutoff=p_energy_cutoff,
                     relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    roi_radius_in_deg=roi_radius_in_deg,
                     fov_in_deg=fov_in_deg
                     )
                 fov_rate = get_rate_charged_diffuse(
@@ -610,9 +605,7 @@ def get_rates_over_energy_figure(
             if 'electron' in particle or 'proton' in particle:
                 data[particle+'_'+cut+'_fov_rate'] = fov_rate
 
-    title_string = ('Diff. Rate' + ', FoV radius: ' +
-        str(roi_radius_in_deg) + '$^{\\circ}$')
-    plt.title(title_string)
+    plt.title('Diff. Rate')
     plt.legend(loc='best', fontsize=10)
     return figure, data
 
@@ -635,6 +628,14 @@ def cutoff_spec(
             relative_flux_below_cutoff)     # heaviside function
         )
 
+
+def psf_electromagnetic_in_deg(energy_in_tev):
+    '''
+    This function returns the half angle / deg of the
+    psf cone which contains 0.67% of gamma events
+    according to Aharonian et al. 5@5 paper
+    '''
+    return 0.8*(energy_in_tev*1000.)**(-0.4)
 
 def plot_over_energy_log_log(
         function,
@@ -676,13 +677,15 @@ def plot_rate_over_energy_charged_diffuse(
         charged_spec,
         cutoff,
         relative_flux_below_cutoff,
-        roi_radius_in_deg,
         fov_in_deg
         ):
 
     energy_range = gls.get_energy_range(effective_area)
-    solid_angle_ratio = (
-        acp.solid_angle_of_cone(roi_radius_in_deg) /
+    
+    solid_angle_ratio = lambda x: (
+        acp.solid_angle_of_cone(
+            psf_electromagnetic_in_deg(x)
+            ) /
         acp.solid_angle_of_cone(fov_in_deg/2.)
         )
 
@@ -692,7 +695,7 @@ def plot_rate_over_energy_charged_diffuse(
     diff_rate = lambda x: (
         charged_spec_cutoff(x) *
         effective_area(x) *
-        solid_angle_ratio)
+        solid_angle_ratio(10**x))
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
         diff_rate,
@@ -707,7 +710,6 @@ def plot_rate_over_energy_charged_diffuse(
         charged_spec=charged_spec,
         cutoff=cutoff,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
-        roi_radius_in_deg=roi_radius_in_deg,
         fov_in_deg=fov_in_deg
         )
 
@@ -720,23 +722,37 @@ def get_rate_charged_diffuse(
         charged_spec,
         cutoff,
         relative_flux_below_cutoff,
-        roi_radius_in_deg,
-        fov_in_deg
+        fov_in_deg,
+        roi_radius_in_deg=None,
         ):
 
     energy_range = gls.get_energy_range(effective_area)
-    solid_angle_ratio = (
-        acp.solid_angle_of_cone(roi_radius_in_deg) /
-        acp.solid_angle_of_cone(fov_in_deg/2.)
-        )
 
     charged_spec_cutoff = cutoff_spec(
         charged_spec, cutoff, relative_flux_below_cutoff)
+   
+    if roi_radius_in_deg is not None:
+        solid_angle_ratio = (
+            acp.solid_angle_of_cone(roi_radius_in_deg) /
+            acp.solid_angle_of_cone(fov_in_deg/2.)
+            )
 
-    integrand = lambda x: (
-        charged_spec_cutoff(np.log10(x)) *
-        effective_area(np.log10(x)) *
-        solid_angle_ratio)
+        integrand = lambda x: (
+            charged_spec_cutoff(np.log10(x)) *
+            effective_area(np.log10(x)) *
+            solid_angle_ratio)
+    else:
+        solid_angle_ratio = lambda x: (
+            acp.solid_angle_of_cone(
+                psf_electromagnetic_in_deg(x)
+                ) /
+            acp.solid_angle_of_cone(fov_in_deg/2.)
+            )
+
+        integrand = lambda x: (
+            charged_spec_cutoff(np.log10(x)) *
+            effective_area(np.log10(x)) *
+            solid_angle_ratio(x))
 
     points_to_watch_out = [energy_range[0], energy_range[0]*10]
     if cutoff > energy_range[0] and cutoff < energy_range[1]:

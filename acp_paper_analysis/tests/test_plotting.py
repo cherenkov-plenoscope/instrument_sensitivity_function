@@ -37,7 +37,6 @@ def test_get_rates_over_energy_figure():
         electron_positron_spec=electron_positron_flux,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
-        roi_radius_in_deg=1.,
         e_0=1.,
         f_0=1e-10,
         gamma=-2.6
@@ -69,9 +68,8 @@ def test_plot_rate_over_energy_charged_diffuse():
         plot_power_slope=3.,
         base_area_in_cm_2=1e4
         )
-    cutoff = 0.9
+    cutoff = 10e-3
     relative_flux_below_cutoff = 0.1
-    roi_radius_in_deg = 1.0
     fov_in_deg = 6.5
 
     plot_data, rate = acp.plot_rate_over_energy_charged_diffuse(
@@ -81,7 +79,6 @@ def test_plot_rate_over_energy_charged_diffuse():
         charged_spec=charged_spec,
         cutoff=cutoff,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
-        roi_radius_in_deg=roi_radius_in_deg,
         fov_in_deg=fov_in_deg
         )
 
@@ -92,7 +89,6 @@ def test_plot_rate_over_energy_charged_diffuse():
         charged_spec=charged_spec,
         cutoff=cutoff*0.95,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
-        roi_radius_in_deg=roi_radius_in_deg,
         fov_in_deg=fov_in_deg
         )
 
