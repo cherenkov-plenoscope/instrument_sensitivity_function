@@ -121,6 +121,7 @@ def test_get_3fgl_catalog():
     for source in fermi_lat_3fgl_catalog:
         assert source['spectral_index'] < 0.
         assert source['flux_density'] < 1e-1
+        assert source['pivot_energy'] > 0.
 
 
 def test_rigidity_to_energy():

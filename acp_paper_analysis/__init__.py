@@ -93,6 +93,31 @@ def analysis(
         plot_isez_all=plot_isez_all
         )
 
+    # do the analysis of the 3FGL catalog
+    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+        resource_dict['fermi_lat']['3fgl']
+        )
+            # 'name': source[name_index],
+            # 'ra': source[ra_index],
+            # 'dec': source[dec_index],
+            # 'gal_long': source[gal_long_index],
+            # 'gal_lat': source[gal_lat_index],
+            # 'spec_type': source[spec_type_index],
+            # 'pivot_energy': source[pivot_energy_index]*1e-6,
+            # 'spectral_index': -1*source[spectral_index_index],
+            # 'flux_density': source[flux_density_index]*1e6
+    for source in fermi_lat_3fgl_catalog:
+        e_0=source['pivot_energy']
+        f_0=source['flux_density']
+        gamma=source['spectral_index']
+        a_eff_interpol=effective_area_dict['gamma']
+        sigma_bg=acp_sigma_bg
+        alpha=1./3.
+        time_to_det = acp.time_to_detection(f_0, gamma, e_0, a_eff_interpol, sigma_bg, alpha)
+        print(source['name'],'time to det.: ',time_to_det)
+        if is_test:
+            break
+
     figures = {
         'gamma_effective_area_figure': gamma_effective_area_figure,
         'charged_acceptance_figure': charged_acceptance_figure,
