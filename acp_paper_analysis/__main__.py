@@ -2,7 +2,7 @@
 This is the main of the ul method paper demonstration
 
 Usage:
-  acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> --f_0=<arg> --Gamma=<arg> --E_0=<arg> [--out=<path>]
+  acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> --f_0=<arg> --Gamma=<arg> --E_0=<arg> [--plot_isez_all --out=<path>]
   acp_paper_analysis (-h | --help)
   acp_paper_analysis --version
 
@@ -14,6 +14,7 @@ Options:
   --f_0=<arg>           Gamma source flux normalization / (1/[cm^2 s TeV])
   --Gamma=<arg>         Gamma source power law index (< 0!)
   --E_0=<arg>           Gamma source reference energy / TeV
+  --plot_isez_all       Plot many ISEZ curves for analysis
   --out=<path>          Optional argument for specifying the output directory
   -h --help             Show this screen.
   --version             Show version.
@@ -70,6 +71,7 @@ def main():
         e_0=float(arguments['--E_0']),
         f_0=float(arguments['--f_0']),
         gamma=float(arguments['--Gamma']),
+        plot_isez_all=arguments['--plot_isez_all']
         )
     main_logic(arguments, dictionary)
 

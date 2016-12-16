@@ -24,7 +24,8 @@ def analysis(
         f_0=1e-10,
         gamma=-2.6,
         gamma_eff=0.67,
-        is_test=False
+        is_test=False,
+        plot_isez_all=False
         ):
     '''
     This method contains the main logic behind the analysis.
@@ -88,7 +89,8 @@ def analysis(
         acp_aeff=acp_aeff_scaled,
         acp_sigma_bg=acp_sigma_bg,
         energy_range=plotting_energy_range,
-        is_test=is_test
+        is_test=is_test,
+        plot_isez_all=plot_isez_all
         )
 
     figures = {
@@ -788,7 +790,8 @@ def get_isez_figure(
         acp_aeff,
         acp_alpha=1./3.,
         t_obs=50.*3600.,
-        is_test=False
+        is_test=False,
+        plot_isez_all=False
         ):
     '''
     This function shall return a set of isze curves, in a figure and as data
@@ -852,8 +855,53 @@ def get_isez_figure(
         e_0=acp_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='r',
-        label='ACP %2.1fh'%(t_obs/3600.)
+        label='ACP %2.1fh' % (t_obs/3600.)
         )
+
+    if plot_isez_all:
+        gls.plot_sens_spectrum_figure(
+            sigma_bg=acp_sigma_bg,
+            alpha=acp_alpha,
+            t_obs=3600,
+            a_eff_interpol=acp_aeff,
+            e_0=acp_energy_range[0]*5.,
+            n_points_to_plot=n_points_to_plot,
+            fmt='r--',
+            label='ACP 1h'
+            )
+
+        gls.plot_sens_spectrum_figure(
+            sigma_bg=acp_sigma_bg,
+            alpha=acp_alpha,
+            t_obs=60,
+            a_eff_interpol=acp_aeff,
+            e_0=acp_energy_range[0]*5.,
+            n_points_to_plot=n_points_to_plot,
+            fmt='r:',
+            label='ACP 1min'
+            )
+
+        gls.plot_sens_spectrum_figure(
+            sigma_bg=acp_sigma_bg,
+            alpha=acp_alpha,
+            t_obs=3600*1000,
+            a_eff_interpol=acp_aeff,
+            e_0=acp_energy_range[0]*5.,
+            n_points_to_plot=n_points_to_plot,
+            fmt='r-.',
+            label='ACP 1y (1000h)'
+            )
+
+        gls.plot_sens_spectrum_figure(
+            sigma_bg=acp_sigma_bg,
+            alpha=acp_alpha,
+            t_obs=1,
+            a_eff_interpol=acp_aeff,
+            e_0=acp_energy_range[0]*5.,
+            n_points_to_plot=n_points_to_plot,
+            fmt='c-',
+            label='ACP 1s'
+            )
 
     plt.title('Integral Spectral Exclusion Zones')
     plt.xlim(energy_range)
