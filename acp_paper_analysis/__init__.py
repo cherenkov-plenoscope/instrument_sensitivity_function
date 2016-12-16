@@ -852,7 +852,7 @@ def get_isez_figure(
         e_0=acp_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='r',
-        label='ACP cut %2.1fh'%(t_obs/3600.)
+        label='ACP %2.1fh'%(t_obs/3600.)
         )
 
     plt.title('Integral Spectral Exclusion Zones')
