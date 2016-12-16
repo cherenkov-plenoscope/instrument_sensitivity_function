@@ -31,11 +31,10 @@ def test_get_interpolated_effective_areas():
     assert len(effective_area_dict) == 3
 
     for particle_type in effective_area_dict:
-        for cut in effective_area_dict[particle_type]:
-            assert isinstance(
-                effective_area_dict[particle_type][cut],
-                scipy.interpolate.interpolate.interp1d
-                )
+        assert isinstance(
+            effective_area_dict[particle_type],
+            scipy.interpolate.interpolate.interp1d
+            )
 
 
 def test_get_charged_acceptance_figure():

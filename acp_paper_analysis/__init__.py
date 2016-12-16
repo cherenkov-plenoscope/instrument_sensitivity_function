@@ -71,8 +71,8 @@ def analysis(
 
     # get the integral bg rate in on region (roi region)
     acp_sigma_bg = (
-        rates_data['electron_positron_cut_roi_rate'] +
-        rates_data['proton_cut_roi_rate']
+        rates_data['electron_positron_roi_rate'] +
+        rates_data['proton_roi_rate']
         )
 
     # make a coparison of the Fermi-LAT, MAGIC,
@@ -80,7 +80,7 @@ def analysis(
     plotting_energy_range = [0.1e-3, 10.]  # in TeV
     # get efficiency scaled acp aeff
     acp_aeff_scaled = get_interpol_func_scaled(
-        effective_area_dict['gamma']['cut'],
+        effective_area_dict['gamma'],
         gamma_eff=gamma_eff)
 
     isez_figure, isez_data = get_isez_figure(
@@ -122,31 +122,17 @@ def get_interpolated_effective_areas(in_folder):
     aeff_file_paths = acp.generate_absolute_filepaths(in_folder)
 
     effective_areas_dict = {
-        'gamma': {
-            'trigger': gls.get_effective_area(
+        'gamma': gls.get_effective_area(
                 aeff_file_paths['gamma']
-                ),
-            'cut': gls.get_effective_area(
-                aeff_file_paths['gamma_cut']
                 )
-        },
-        'electron_positron': {
-            'trigger': gls.get_effective_area(
+        ,
+        'electron_positron': gls.get_effective_area(
                 aeff_file_paths['electron_positron']
-                ),
-            'cut': gls.get_effective_area(
-                aeff_file_paths['electron_positron_cut']
                 )
-        },
-        'proton': {
-            'trigger': gls.get_effective_area(
+        ,
+        'proton': gls.get_effective_area(
                 aeff_file_paths['proton']
-                ),
-            'cut': gls.get_effective_area(
-                aeff_file_paths['proton_cut']
                 )
-        },
-
     }
 
     return effective_areas_dict
@@ -159,12 +145,8 @@ def generate_absolute_filepaths(in_folder):
     '''
     aeff_dict = {
         'gamma': in_folder + '/gamma_aeff.dat',
-        'gamma_cut': in_folder + '/gamma_cut_aeff.dat',
         'electron_positron': in_folder + '/electron_positron_aeff.dat',
-        'electron_positron_cut': in_folder +
-        '/electron_positron_cut_aeff.dat',
-        'proton': in_folder + '/proton_aeff.dat',
-        'proton_cut': in_folder + '/proton_cut_aeff.dat'
+        'proton': in_folder + '/proton_aeff.dat'
         }
 
     for aeff_name in aeff_dict:
@@ -405,7 +387,7 @@ def time_to_detection(
 def solid_angle_of_cone(apex_angle_in_deg):
     '''
     WIKI:
-    solid angle of cone with apex angle 2θ =
+    solid angle of cone with apex angle 2phi =
     area of a spherical cap on a unit sphere
 
     input: deg
@@ -429,26 +411,28 @@ def rigidity_to_energy(rigidity, charge, mass):
     return np.sqrt((rigidity*charge)**2 + mass**2) - mass
 
 
+def linestyle(particle):
+    buf_dict = {
+        'gamma': 'k-',
+        'electron_positron': 'k--',
+        'proton': 'k:'
+    }
+    return buf_dict[particle]
+
+
 def get_charged_acceptance_figure(
         effective_area_dict
         ):
     figure = plt.figure()
 
-    colors = ['b', 'k', 'm', 'c', 'r', 'g']
-    linestyles = ['-', '--', '-.', ':']
-
-    for i, particle in enumerate(effective_area_dict):
-        for j, cut in enumerate(effective_area_dict[particle]):
-            label = particle+' '+cut
-            style = colors[j]+linestyles[i]
-
-            if 'electron' in particle or 'proton' in particle:
-                plot_effective_area(
-                    effective_area_dict[particle][cut],
-                    style=style,
-                    label=label,
-                    diffuse=True
-                    )
+    for particle in effective_area_dict:
+        if 'electron' in particle or 'proton' in particle:
+            plot_effective_area(
+                effective_area_dict[particle],
+                style=linestyle(particle),
+                label=particle,
+                diffuse=True
+                )
 
     plt.title('Instrument Acceptance')
     plt.legend(loc='best', fontsize=10)
@@ -460,21 +444,14 @@ def get_gamma_effective_area_figure(
         ):
     figure = plt.figure()
 
-    colors = ['b', 'k', 'm', 'c', 'r', 'g']
-    linestyles = ['-', '--', '-.', ':']
-
-    for i, particle in enumerate(effective_area_dict):
-        for j, cut in enumerate(effective_area_dict[particle]):
-            label = particle+' '+cut
-            style = colors[j]+linestyles[i]
-
-            if 'gamma' in particle:
-                plot_effective_area(
-                    effective_area_dict[particle][cut],
-                    style=style,
-                    label=label,
-                    diffuse=False
-                    )
+    for particle in effective_area_dict:
+        if 'gamma' in particle:
+            plot_effective_area(
+                effective_area_dict[particle],
+                style=linestyle(particle),
+                label=particle,
+                diffuse=False
+                )
 
     plt.title('Effective Area')
     plt.legend(loc='best', fontsize=10)
@@ -507,8 +484,8 @@ def plot_effective_area(
     plt.xlabel('Energy / TeV')
     plt.ylabel('A$_{eff}$ / m$^2$')
     if diffuse:
-        plt.ylabel('Ap / (m$^2$ sr)')
-        
+        plt.ylabel('Acceptance / (m$^2$ sr)')
+
     return
 
 
@@ -545,65 +522,58 @@ def get_rates_over_energy_figure(
     figure = plt.figure()
     data = {}
 
-    colors = ['b', 'k', 'm', 'c', 'r', 'g']
-    linestyles = ['-', '--', '-.', ':']
-    
-    for i, particle in enumerate(effective_area_dict):
-        for j, cut in enumerate(effective_area_dict[particle]):
-            label = particle+' '+cut
-            style = colors[j]+linestyles[i]
-
-            if 'electron' in particle:
-                plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
-                    effective_area_dict[particle][cut],
-                    style=style,
-                    label=label,
-                    charged_spec=electron_positron_spec,
-                    cutoff=e_energy_cutoff,
-                    relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    fov_in_deg=fov_in_deg
-                    )
-                fov_rate = get_rate_charged_diffuse(
-                    effective_area_dict[particle][cut],
-                    charged_spec=electron_positron_spec,
-                    cutoff=e_energy_cutoff,
-                    relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    roi_radius_in_deg=fov_in_deg/2.,
-                    fov_in_deg=fov_in_deg
-                    )
-            elif 'proton' in particle:
-                plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
-                    effective_area_dict[particle][cut],
-                    style=style,
-                    label=label,
-                    charged_spec=proton_spec,
-                    cutoff=p_energy_cutoff,
-                    relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    fov_in_deg=fov_in_deg
-                    )
-                fov_rate = get_rate_charged_diffuse(
-                    effective_area_dict[particle][cut],
-                    charged_spec=electron_positron_spec,
-                    cutoff=e_energy_cutoff,
-                    relative_flux_below_cutoff=relative_flux_below_cutoff,
-                    roi_radius_in_deg=fov_in_deg/2.,
-                    fov_in_deg=fov_in_deg
-                    )
-            elif 'gamma' in particle:
-                plot_data, roi_rate = plot_rate_over_energy_power_law_source(
-                    effective_area_dict[particle][cut],
-                    style=style,
-                    label=label,
-                    e_0=e_0,
-                    f_0=f_0,
-                    gamma=gamma,
-                    efficiency=gamma_eff
-                    )
-            data[particle+'_'+cut+'_rate_plot_data'] = plot_data
-            data[particle+'_'+cut+'_roi_rate'] = roi_rate
-            
-            if 'electron' in particle or 'proton' in particle:
-                data[particle+'_'+cut+'_fov_rate'] = fov_rate
+    for particle in effective_area_dict:
+        if 'electron' in particle:
+            plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
+                effective_area_dict[particle],
+                style=linestyle(particle),
+                label=particle,
+                charged_spec=electron_positron_spec,
+                cutoff=e_energy_cutoff,
+                relative_flux_below_cutoff=relative_flux_below_cutoff,
+                fov_in_deg=fov_in_deg
+                )
+            fov_rate = get_rate_charged_diffuse(
+                effective_area_dict[particle],
+                charged_spec=electron_positron_spec,
+                cutoff=e_energy_cutoff,
+                relative_flux_below_cutoff=relative_flux_below_cutoff,
+                roi_radius_in_deg=fov_in_deg/2.,
+                fov_in_deg=fov_in_deg
+                )
+        elif 'proton' in particle:
+            plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
+                effective_area_dict[particle],
+                style=linestyle(particle),
+                label=particle,
+                charged_spec=proton_spec,
+                cutoff=p_energy_cutoff,
+                relative_flux_below_cutoff=relative_flux_below_cutoff,
+                fov_in_deg=fov_in_deg
+                )
+            fov_rate = get_rate_charged_diffuse(
+                effective_area_dict[particle],
+                charged_spec=electron_positron_spec,
+                cutoff=e_energy_cutoff,
+                relative_flux_below_cutoff=relative_flux_below_cutoff,
+                roi_radius_in_deg=fov_in_deg/2.,
+                fov_in_deg=fov_in_deg
+                )
+        elif 'gamma' in particle:
+            plot_data, roi_rate = plot_rate_over_energy_power_law_source(
+                effective_area_dict[particle],
+                style=linestyle(particle),
+                label=particle,
+                e_0=e_0,
+                f_0=f_0,
+                gamma=gamma,
+                efficiency=gamma_eff
+                )
+        data[particle+'_rate_plot_data'] = plot_data
+        data[particle+'_roi_rate'] = roi_rate
+        
+        if 'electron' in particle or 'proton' in particle:
+            data[particle+'_fov_rate'] = fov_rate
 
     plt.title('Diff. Rate')
     plt.legend(loc='best', fontsize=10)

@@ -59,7 +59,7 @@ def test_plot_rate_over_energy_charged_diffuse():
     )
     resource_dict = acp.get_resources_paths()
 
-    effective_area = effective_area_dict['electron_positron']['trigger']
+    effective_area = effective_area_dict['electron_positron']
     style = 'k'
     label = 'e+-'
     charged_spec = acp.get_cosmic_ray_flux_interpol(
@@ -115,7 +115,7 @@ def test_plot_rate_over_energy_power_law_source():
             acp.__path__[0] + '/resources/test_infolder/'
     )
 
-    effective_area = effective_area_dict['gamma']['trigger']
+    effective_area = effective_area_dict['gamma']
     style = 'k'
     label = 'gamma'
     e_0 = 1.
