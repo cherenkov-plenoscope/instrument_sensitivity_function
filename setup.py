@@ -26,6 +26,7 @@ setup(
         'matplotlib',
         'docopt',
         'pyfits',
+        'tqdm'
         'gamma_limits_sensitivity'
     ],
     tests_require=['pytest']

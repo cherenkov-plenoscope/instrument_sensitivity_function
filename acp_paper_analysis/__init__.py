@@ -5,9 +5,12 @@ This is the hard working code in order to create publication plots
 #
 # import matplotlib.pyplot as plt
 import os
+import csv
 import pyfits
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from scipy.interpolate import interpolate
 from scipy import integrate
 
@@ -25,7 +28,8 @@ def analysis(
         gamma=-2.6,
         gamma_eff=0.67,
         is_test=False,
-        plot_isez_all=False
+        plot_isez_all=False,
+        out_path=None
         ):
     '''
     This method contains the main logic behind the analysis.
@@ -75,6 +79,7 @@ def analysis(
         rates_data['electron_positron_roi_rate'] +
         rates_data['proton_roi_rate']
         )
+    acp_alpha = 1./3.
 
     # make a coparison of the Fermi-LAT, MAGIC,
     # and ACP integral spectral exclusion zone
@@ -97,26 +102,13 @@ def analysis(
     fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
         resource_dict['fermi_lat']['3fgl']
         )
-            # 'name': source[name_index],
-            # 'ra': source[ra_index],
-            # 'dec': source[dec_index],
-            # 'gal_long': source[gal_long_index],
-            # 'gal_lat': source[gal_lat_index],
-            # 'spec_type': source[spec_type_index],
-            # 'pivot_energy': source[pivot_energy_index]*1e-6,
-            # 'spectral_index': -1*source[spectral_index_index],
-            # 'flux_density': source[flux_density_index]*1e6
-    for source in fermi_lat_3fgl_catalog:
-        e_0=source['pivot_energy']
-        f_0=source['flux_density']
-        gamma=source['spectral_index']
-        a_eff_interpol=effective_area_dict['gamma']
-        sigma_bg=acp_sigma_bg
-        alpha=1./3.
-        time_to_det = acp.time_to_detection(f_0, gamma, e_0, a_eff_interpol, sigma_bg, alpha)
-        print(source['name'],'time to det.: ',time_to_det)
-        if is_test:
-            break
+    sorted_times_to_detection, reduced_catalog = acp.get_time_to_detections(
+        fermi_lat_3fgl_catalog,
+        a_eff=effective_area_dict['gamma'],
+        sigma_bg=acp_sigma_bg,
+        alpha=acp_alpha,
+        out_path=out_path)
+
 
     figures = {
         'gamma_effective_area_figure': gamma_effective_area_figure,
@@ -955,3 +947,86 @@ def get_interpol_func_scaled(func, gamma_eff):
     )
 
     return scaled_interpol
+
+
+def get_time_to_detections(
+        fermi_lat_3fgl_catalog,
+        a_eff,
+        sigma_bg,
+        alpha,
+        out_path=None,
+        is_test=False
+        ):
+    '''
+    This function maps methods for getting time
+    to detections onto the 3FGL and returns a sorted list
+    of times to detection and indices where to find them
+    in the 3fgl
+    '''
+
+    # 'name': source[name_index],
+    # 'ra': source[ra_index],
+    # 'dec': source[dec_index],
+    # 'gal_long': source[gal_long_index],
+    # 'gal_lat': source[gal_lat_index],
+    # 'spec_type': source[spec_type_index],
+    # 'pivot_energy': source[pivot_energy_index]*1e-6,
+    # 'spectral_index': -1*source[spectral_index_index],
+    # 'flux_density': source[flux_density_index]*1e6
+    detection_times = []
+    gal_lat_cut = 30  # only src with |gal lat| > 30
+    spec_type = 'PowerLaw'
+    total = len(fermi_lat_3fgl_catalog)
+
+
+    for i, source in tqdm(enumerate(fermi_lat_3fgl_catalog), total=total):
+        # check that it is pl and far off the gal. plane
+        if source['spec_type'] == spec_type and np.abs(source['gal_lat']) > gal_lat_cut:
+            e_0 = source['pivot_energy']
+            f_0 = source['flux_density']
+            gamma = source['spectral_index']
+            time_to_det = acp.time_to_detection(
+                f_0, gamma, e_0, a_eff, sigma_bg, alpha)
+
+            list_buf = [i, time_to_det]
+            detection_times.append(list_buf)
+        if is_test and i > 10:
+            break
+
+    # sort on the times to detection
+    detection_times.sort(key=lambda x: x[1])
+
+    reduced_sorted_catalog = [
+        [
+            fermi_lat_3fgl_catalog[i[0]]['name'],
+            fermi_lat_3fgl_catalog[i[0]]['ra'],
+            fermi_lat_3fgl_catalog[i[0]]['dec'],
+            fermi_lat_3fgl_catalog[i[0]]['gal_long'],
+            fermi_lat_3fgl_catalog[i[0]]['gal_lat'],
+            fermi_lat_3fgl_catalog[i[0]]['spec_type'],
+            fermi_lat_3fgl_catalog[i[0]]['pivot_energy'],
+            fermi_lat_3fgl_catalog[i[0]]['spectral_index'],
+            fermi_lat_3fgl_catalog[i[0]]['flux_density'],
+            i[1]
+        ]
+        for i in detection_times
+        ]
+
+    if out_path is not None:
+        with open(out_path+'/time_to_detections.csv', 'w') as myfile:
+            writer = csv.writer(myfile)
+            myfile.write(
+                '# time_to_detections, written: ' +
+                datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S\n"
+                    )
+                )
+            myfile.write(
+                '# name, ra, dec, gal_long, gal_lat, spec_type, ' +
+                'pivot_energy, spectral_index, flux_density, time_est' +
+                '\n'
+                )
+            for row in reduced_sorted_catalog:
+                writer.writerow(row)
+
+    return detection_times, reduced_sorted_catalog

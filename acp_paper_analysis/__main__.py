@@ -62,7 +62,7 @@ def main():
     '''
     version = pkg_resources.require("acp_paper_analysis")[0].version
     arguments = docopt(__doc__, version=version)
-
+   
     dictionary = acp.analysis(
         arguments['--in'],
         rigidity_cutoff_in_tev=float(arguments['--cutoff']),
@@ -71,7 +71,8 @@ def main():
         e_0=float(arguments['--E_0']),
         f_0=float(arguments['--f_0']),
         gamma=float(arguments['--Gamma']),
-        plot_isez_all=arguments['--plot_isez_all']
+        plot_isez_all=arguments['--plot_isez_all'],
+        out_path=arguments['--out']
         )
     main_logic(arguments, dictionary)
 
