@@ -68,25 +68,25 @@ def test_get_gamma_effective_area_figure():
     assert isinstance(effective_area_figure, matplotlib.figure.Figure)
 
 
-def test_analysis():
-    '''
-    This test checks if the analysis does
-    make sense.
-    '''
-    result_dict = acp.analysis(
-        acp.__path__[0] + '/resources/test_infolder/',
-        is_test=True
-        )
+# def test_analysis():
+#     '''
+#     This test checks if the analysis does
+#     make sense.
+#     '''
+#     result_dict = acp.analysis(
+#         acp.__path__[0] + '/resources/test_infolder/',
+#         is_test=True
+#         )
 
-    for plot_name in result_dict['plots']:
-        assert isinstance(
-            result_dict['plots'][plot_name], matplotlib.figure.Figure
-            )
+#     for plot_name in result_dict['plots']:
+#         assert isinstance(
+#             result_dict['plots'][plot_name], matplotlib.figure.Figure
+#             )
 
-    for data_name in result_dict['data']:
-        assert isinstance(
-            result_dict['data'][data_name], numpy.ndarray
-            )
+#     for data_name in result_dict['data']:
+#         assert isinstance(
+#             result_dict['data'][data_name], numpy.ndarray
+#             )
 
 
 def test_get_time_to_detections():

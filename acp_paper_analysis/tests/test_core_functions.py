@@ -122,6 +122,13 @@ def test_get_3fgl_catalog():
         assert source['spectral_index'] < 0.
         assert source['flux_density'] < 1e-1
         assert source['pivot_energy'] > 0.
+        if source['spec_type'] == 'LogParabola':
+            assert source['beta'] < 0
+            assert source['beta'] >= -1
+        elif source['spec_type'] == 'PLExpCutoff' or source['spec_type'] == 'PLSuperExpCutoff':
+            assert source['cutoff'] > 0
+            assert source['exp_index'] > 0
+            assert source['spectral_index'] <= 0.5
 
 
 def test_rigidity_to_energy():
@@ -213,3 +220,40 @@ def test_cutoff_spec():
         charged_spec(np.log10(cutoff*0.6)),
         cutoff_func(np.log10(cutoff*0.6))/relative_flux_below_cutoff
         )
+
+
+def test_log_parabola():
+    '''
+    Test the log parabola function
+    '''
+    energy = 0.1
+    f_0 = 1e-11
+    gamma = -2.6
+    e_0 = 0.01
+    beta = 0.0
+    
+    res_buf1 = gls.power_law(energy, f_0=f_0, gamma=gamma, e_0=e_0)
+    res_buf2 = acp.log_parabola_3fgl(
+        energy, f_0=f_0, alpha=gamma, e_0=e_0, beta=beta
+        )
+
+    assert np.isclose(res_buf1, res_buf2)
+
+
+def test_pl_exp_cutoff():
+    '''
+    Test the log parabola function
+    '''
+    energy = 0.1
+    f_0 = 1e-11
+    gamma = -2.6
+    e_0 = 0.01
+    cutoff = 10000.
+    exp_index = 1
+
+    res_buf1 = gls.power_law(energy, f_0=f_0, gamma=gamma, e_0=e_0)
+    res_buf2 = acp.pl_super_exp_cutoff_3fgl(
+        energy, f_0=f_0, gamma=gamma, e_0=e_0, cutoff=cutoff, exp_index=exp_index
+        )
+
+    assert np.isclose(res_buf1, res_buf2)

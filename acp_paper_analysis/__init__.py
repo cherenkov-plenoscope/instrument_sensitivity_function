@@ -239,6 +239,10 @@ def get_3fgl_catalog(file_path):
     spectral_index_index = 22
     flux_density_index = 14
 
+    beta_index = 24
+    cutoff_index = 26
+    exp_index = 28
+
     source_dict_list = []
     for source in hdu_list[1].data:
         source_dict = {
@@ -250,7 +254,10 @@ def get_3fgl_catalog(file_path):
             'spec_type': source[spec_type_index],
             'pivot_energy': source[pivot_energy_index]*1e-6,
             'spectral_index': -1*source[spectral_index_index],
-            'flux_density': source[flux_density_index]*1e6
+            'flux_density': source[flux_density_index]*1e6,
+            'beta': -1*source[beta_index],
+            'cutoff': source[cutoff_index],
+            'exp_index': source[exp_index]
         }
         source_dict_list.append(source_dict)
 
@@ -386,20 +393,55 @@ def time_to_detection(
         a_eff_interpol,
         sigma_bg,
         alpha,
+        beta=False,
+        cutoff=False,
+        exp_index=False,
+        spec_type='PowerLaw',
         threshold=5.
         ):
     '''
-    This function calls gls functions in order to calculate time to detections
+    This function calls gls functions in order to calculate time to detections.
+    spectrum types:
+
+    PowerLaw
+    LogParabola
+    PLExpCutoff / PLSuperExpCutoff
     '''
-    return gls.t_obs_li_ma_criterion(
-        f_0 * gls.effective_area_averaged_flux(
-            gamma,
-            e_0,
-            a_eff_interpol
-            ),
-        sigma_bg,
-        alpha,
-        threshold
+    if spec_type == 'PowerLaw':
+        return gls.t_obs_li_ma_criterion(
+            f_0 * gls.effective_area_averaged_flux(
+                gamma,
+                e_0,
+                a_eff_interpol
+                ),
+            sigma_bg,
+            alpha,
+            threshold
+            )
+    # elif spec_type == '':
+
+    # elif spec_type == '':
+
+    # elif spec_type == '':
+
+    # elif spec_type == '':
+
+
+def log_parabola_3fgl(energy, f_0, alpha, e_0, beta):
+    '''
+    log parabola as defined in 3fgl cat
+    but with already negative alpha and beta
+    '''
+    return f_0*(energy/e_0)**(+alpha+beta*np.log10(energy/e_0))
+
+
+def pl_super_exp_cutoff_3fgl(energy, f_0, gamma, e_0, cutoff, exp_index):
+    '''
+    pl super exponential cutoff as defined in 3FGL cat,
+    but with already negative gamma
+    '''
+    return f_0*(energy/e_0)**(gamma)*np.exp(
+        (e_0/cutoff)**exp_index - (energy/cutoff)**exp_index
         )
 
 
@@ -974,7 +1016,7 @@ def get_time_to_detections(
     # 'spectral_index': -1*source[spectral_index_index],
     # 'flux_density': source[flux_density_index]*1e6
     detection_times = []
-    gal_lat_cut = 30  # only src with |gal lat| > 30
+    gal_lat_cut = 15  # only src with |gal lat| > 15
     spec_type = 'PowerLaw'
     total = len(fermi_lat_3fgl_catalog)
 
