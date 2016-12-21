@@ -150,7 +150,7 @@ def test_time_to_detection():
     Test if the time to detection gives sensible results
     '''
     resource_dict = acp.get_resources_paths()
-    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
+    cta_aeff = gls.get_effective_area(resource_dict['Aeff']['cta'])
 
     f_0 = 1e-9
     e_0 = 1.
@@ -159,7 +159,7 @@ def test_time_to_detection():
     alpha = 0.2
 
     t_est = acp.time_to_detection(
-        f_0, gamma, e_0, magic_aeff, sigma_bg, alpha
+        f_0, gamma, e_0, cta_aeff, sigma_bg, alpha
         )
 
     assert t_est < 360  # check that the thing is detected faster than 0.1h

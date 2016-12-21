@@ -166,3 +166,15 @@ def test_plot_rate_over_energy_power_law_source():
     # and with higher efficiency also
     assert rate2 > rate
     assert rate2 > rate3
+
+
+def test_get_t_est_histogram():
+    '''
+    Test to check a drawing method
+    '''
+    sorted_t_list = numpy.arange(10)
+
+    figure, data_dict = acp.get_t_est_histogram(sorted_t_list)
+
+    assert isinstance(data_dict, dict)
+    assert isinstance(figure, matplotlib.figure.Figure)

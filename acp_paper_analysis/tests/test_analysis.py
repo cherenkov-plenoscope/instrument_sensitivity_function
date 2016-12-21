@@ -94,7 +94,7 @@ def test_get_time_to_detections():
     This test checks if the time to detectin method is working
     '''
     resource_dict = acp.get_resources_paths()
-    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
+    cta_aeff = gls.get_effective_area(resource_dict['Aeff']['cta'])
     sigma_bg_test = 20./3600.
     alpha_test = 1./5.
 
@@ -104,7 +104,7 @@ def test_get_time_to_detections():
 
     detection_time_list, reduced_catalog = acp.get_time_to_detections(
         fermi_lat_3fgl_catalog,
-        a_eff=magic_aeff,
+        a_eff=cta_aeff,
         sigma_bg=sigma_bg_test,
         alpha=alpha_test,
         is_test=True,

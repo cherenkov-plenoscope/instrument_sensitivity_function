@@ -81,7 +81,7 @@ def analysis(
         )
     acp_alpha = 1./3.
 
-    # make a coparison of the Fermi-LAT, MAGIC,
+    # make a coparison of the Fermi-LAT, CTA,
     # and ACP integral spectral exclusion zone
     plotting_energy_range = [0.1e-3, 10.]  # in TeV
     # get efficiency scaled acp aeff
@@ -102,21 +102,24 @@ def analysis(
     fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
         resource_dict['fermi_lat']['3fgl']
         )
-    sorted_times_to_detection, reduced_catalog = acp.get_time_to_detections(
+    sorted_times_to_detection_map, reduced_catalog = acp.get_time_to_detections(
         fermi_lat_3fgl_catalog,
         a_eff=effective_area_dict['gamma'],
         sigma_bg=acp_sigma_bg,
         alpha=acp_alpha,
         out_path=out_path)
 
+    t_est_histogram, t_est_data = acp.get_t_est_histogram(
+        np.array(sorted_times_to_detection_map)[:, 1])
 
     figures = {
         'gamma_effective_area_figure': gamma_effective_area_figure,
         'charged_acceptance_figure': charged_acceptance_figure,
         'rates_figure': rates_figure,
-        'isez_figure': isez_figure
+        'isez_figure': isez_figure,
+        't_est_figure': t_est_histogram
         }
-    data = merge_dicts(rates_data, isez_data)
+    data = merge_dicts(rates_data, isez_data, t_est_data)
 
     dictionary = {
         'plots': figures,
@@ -191,7 +194,7 @@ def get_resources_paths():
             'proton': acp.__path__[0]+'/resources/proton_spec.dat',
         },
         'Aeff': {
-            'magic': acp.__path__[0] + '/resources/MAGIC_lowZd_Aeff.dat'
+            'cta': acp.__path__[0] + '/resources/cta_aeff_south_50h_all_cuts.dat'
         },
         'isez': {
             'fermi_lat': acp.__path__[0] + '/resources/' +
@@ -906,14 +909,14 @@ def get_isez_figure(
     '''
     crab_broad_spectrum = get_crab_spectrum(resource_dict['crab']['broad_sed'])
 
-    # get magic sensitivity parameters as stated in ul paper
-    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
-    magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
-    magic_alpha = 0.2  # five off regions
+    # get cta sensitivity parameters as stated on website
+    cta_aeff = gls.get_effective_area(resource_dict['Aeff']['cta'])
+    cta_sigma_bg = 3.997  # bg per second in the on region, from summing bins
+    cta_alpha = 0.2  # five off regions
     n_points_to_plot = 21
     if is_test:
         n_points_to_plot = 1
-    magic_energy_range = gls.get_energy_range(magic_aeff)
+    cta_energy_range = gls.get_energy_range(cta_aeff)
 
     fermi_lat_isez = acp.get_fermi_lat_isez(resource_dict['isez']['fermi_lat'])
 
@@ -939,16 +942,16 @@ def get_isez_figure(
         ylabel='dN/dE / (cm$^2$ s TeV)$^{-1}$',
         log_resolution=0.05)
 
-    # magic_energy_x, magic_dn_de_y = gls.plot_sens_spectrum_figure(
+    # cta_energy_x, cta_dn_de_y = gls.plot_sens_spectrum_figure(
     gls.plot_sens_spectrum_figure(
-        sigma_bg=magic_sigma_bg,
-        alpha=magic_alpha,
+        sigma_bg=cta_sigma_bg,
+        alpha=cta_alpha,
         t_obs=t_obs,
-        a_eff_interpol=magic_aeff,
-        e_0=magic_energy_range[0]*5.,
+        a_eff_interpol=cta_aeff,
+        e_0=cta_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='b',
-        label='MAGIC %2.1fh'%(t_obs/3600.)
+        label='CTA south %2.1fh'%(t_obs/3600.)
         )
 
     # plot the acp sensitivity
@@ -1132,3 +1135,36 @@ def get_time_to_detections(
                 writer.writerow(row)
 
     return detection_times, reduced_sorted_catalog
+
+
+def get_t_est_histogram(sorted_t_est_list, style='k', label=''):
+    '''
+    this function produces a figure
+    containing the times to detection for the
+    given list
+    '''
+    figure = plt.figure()
+
+    data = plot_t_est_histogram(sorted_t_est_list, style, label)
+    data_dict = {
+        't_est_cdf': data
+    }
+    if label is not '':
+        plt.legend(loc='best')
+
+    return figure, data_dict
+
+
+def plot_t_est_histogram(sorted_t_est_list, style, label):
+    '''
+    This function plots the t_est_histogram into the current figure
+    '''
+    yvals = np.arange(len(sorted_t_est_list))+1
+    plt.step(sorted_t_est_list, yvals, style, label=label)
+    plt.loglog()
+    plt.xlabel('time / s')
+    plt.ylabel('number of src')
+    plt.title('Fermi-LAT 3FGL sources detected over time')
+
+    plot_data = np.vstack((sorted_t_est_list, yvals)).T
+    return plot_data
