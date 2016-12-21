@@ -407,24 +407,72 @@ def time_to_detection(
     LogParabola
     PLExpCutoff / PLSuperExpCutoff
     '''
+    lambda_lim_val = lambda_lim(
+        f_0=f_0,
+        gamma=gamma,
+        e_0=e_0,
+        a_eff_interpol=a_eff_interpol,
+        beta=beta,
+        cutoff=cutoff,
+        exp_index=exp_index,
+        spec_type=spec_type)
+
+    return gls.t_obs_li_ma_criterion(
+        lambda_lim_val,
+        sigma_bg,
+        alpha,
+        threshold
+        )
+
+
+def lambda_lim(
+        f_0,
+        gamma,
+        e_0,
+        a_eff_interpol,
+        beta,
+        cutoff,
+        exp_index,
+        spec_type):
+    '''
+    calculate the expected number of events, given a spectrum
+    '''
+    energy_range = gls.get_energy_range(a_eff_interpol)
+
     if spec_type == 'PowerLaw':
-        return gls.t_obs_li_ma_criterion(
-            f_0 * gls.effective_area_averaged_flux(
-                gamma,
-                e_0,
-                a_eff_interpol
-                ),
-            sigma_bg,
-            alpha,
-            threshold
+        return f_0 * gls.effective_area_averaged_flux(
+            gamma,
+            e_0,
+            a_eff_interpol
             )
-    # elif spec_type == '':
 
-    # elif spec_type == '':
+    elif spec_type == 'LogParabola':
+        integrand = lambda x: log_parabola_3fgl(
+            x,
+            f_0=f_0,
+            alpha=gamma,
+            e_0=e_0,
+            beta=beta
+            )*a_eff_interpol(np.log10(x))
 
-    # elif spec_type == '':
+    elif spec_type == 'PLExpCutoff' or spec_type == 'PLSuperExpCutoff':
+        integrand = lambda x: pl_super_exp_cutoff_3fgl(
+            x,
+            f_0=f_0,
+            gamma=gamma,
+            e_0=e_0,
+            cutoff=cutoff,
+            exp_index=exp_index
+            )*a_eff_interpol(np.log10(x))
 
-    # elif spec_type == '':
+    return integrate.quad(
+        integrand,
+        energy_range[0],
+        energy_range[1],
+        limit=10000,
+        full_output=1,
+        points=[energy_range[0], energy_range[0]*10]
+        )[0]
 
 
 def log_parabola_3fgl(energy, f_0, alpha, e_0, beta):
@@ -1017,18 +1065,30 @@ def get_time_to_detections(
     # 'flux_density': source[flux_density_index]*1e6
     detection_times = []
     gal_lat_cut = 15  # only src with |gal lat| > 15
-    spec_type = 'PowerLaw'
     total = len(fermi_lat_3fgl_catalog)
 
 
     for i, source in tqdm(enumerate(fermi_lat_3fgl_catalog), total=total):
         # check that it is pl and far off the gal. plane
-        if source['spec_type'] == spec_type and np.abs(source['gal_lat']) > gal_lat_cut:
+        if np.abs(source['gal_lat']) > gal_lat_cut:
             e_0 = source['pivot_energy']
             f_0 = source['flux_density']
             gamma = source['spectral_index']
+            beta = source['beta']
+            cutoff = source['cutoff']
+            exp_index = source['exp_index']
             time_to_det = acp.time_to_detection(
-                f_0, gamma, e_0, a_eff, sigma_bg, alpha)
+                f_0=f_0,
+                gamma=gamma,
+                e_0=e_0,
+                a_eff_interpol=a_eff,
+                sigma_bg=sigma_bg,
+                alpha=alpha,
+                beta=beta,
+                cutoff=cutoff,
+                exp_index=exp_index,
+                spec_type=source['spec_type'],
+                )
 
             list_buf = [i, time_to_det]
             detection_times.append(list_buf)

@@ -125,4 +125,9 @@ def test_get_time_to_detections():
         detection_numpy_times[1:] - detection_numpy_times[:-1]) > 0)
 
     for i in reduced_catalog:
-        assert i[5] == 'PowerLaw'
+        assert i[5] in (
+            'PowerLaw',
+            'LogParabola',
+            'PLExpCutoff',
+            'PLSuperExpCutoff'
+            )
