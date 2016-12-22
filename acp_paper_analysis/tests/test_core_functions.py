@@ -150,7 +150,7 @@ def test_time_to_detection():
     Test if the time to detection gives sensible results
     '''
     resource_dict = acp.get_resources_paths()
-    cta_aeff = gls.get_effective_area(resource_dict['Aeff']['cta'])
+    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
 
     f_0 = 1e-9
     e_0 = 1.
@@ -159,7 +159,7 @@ def test_time_to_detection():
     alpha = 0.2
 
     t_est = acp.time_to_detection(
-        f_0, gamma, e_0, cta_aeff, sigma_bg, alpha
+        f_0, gamma, e_0, magic_aeff, sigma_bg, alpha
         )
 
     assert t_est < 360  # check that the thing is detected faster than 0.1h
@@ -257,3 +257,24 @@ def test_pl_exp_cutoff():
         )
 
     assert np.isclose(res_buf1, res_buf2)
+
+
+def test_get_gamma_spect():
+    '''
+    Test the function to return gamma ray spectra,
+    dependent on the name of the source
+    '''
+    source = '3FGL J1836.2+5925'
+    resource_dict = acp.get_resources_paths()
+
+    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+        resource_dict['fermi_lat']['3fgl']
+        )
+
+    spectrum = acp.get_gamma_spect(fermi_lat_3fgl_catalog, source=source)
+
+    log10_e1 = np.log10(1e-3)
+    log10_e2 = np.log10(10e-3)
+
+    # check that higher energies produce lower fluxes
+    assert spectrum(log10_e1) > spectrum(log10_e2)

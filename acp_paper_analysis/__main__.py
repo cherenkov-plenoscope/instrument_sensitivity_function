@@ -2,7 +2,7 @@
 This is the main of the ul method paper demonstration
 
 Usage:
-  acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> --f_0=<arg> --Gamma=<arg> --E_0=<arg> [--plot_isez_all --out=<path>]
+  acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
   acp_paper_analysis (-h | --help)
   acp_paper_analysis --version
 
@@ -11,11 +11,9 @@ Options:
   --cutoff=<arg>        Rigidity cutoff / TV
   --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
   --fov=<arg>           Field of View of the simulated ACP / deg (typical: 6.5 deg)
-  --f_0=<arg>           Gamma source flux normalization / (1/[cm^2 s TeV])
-  --Gamma=<arg>         Gamma source power law index (< 0!)
-  --E_0=<arg>           Gamma source reference energy / TeV
-  --plot_isez_all       Plot many ISEZ curves for analysis
-  --out=<path>          Optional argument for specifying the output directory
+  --src=<arg>           Optional: Gamma source 3FGL name (e.g. 3FGL J1836.2+5925) for gamma-ray rate plot
+  --plot_isez_all       Optional: Plot many ISEZ curves for analysis
+  --out=<path>          Optional: Argument for specifying the output directory
   -h --help             Show this screen.
   --version             Show version.
 '''
@@ -68,9 +66,7 @@ def main():
         rigidity_cutoff_in_tev=float(arguments['--cutoff']),
         relative_flux_below_cutoff=float(arguments['--rel_flux']),
         fov_in_deg=float(arguments['--fov']),
-        e_0=float(arguments['--E_0']),
-        f_0=float(arguments['--f_0']),
-        gamma=float(arguments['--Gamma']),
+        source=arguments['--src'],
         plot_isez_all=arguments['--plot_isez_all'],
         out_path=arguments['--out']
         )

@@ -23,9 +23,7 @@ def analysis(
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
-        e_0=1.,
-        f_0=1e-10,
-        gamma=-2.6,
+        source='3FGL J1836.2+5925',
         gamma_eff=0.67,
         is_test=False,
         plot_isez_all=False,
@@ -40,6 +38,11 @@ def analysis(
     # prepare the data
     effective_area_dict = get_interpolated_effective_areas(in_folder)
     resource_dict = get_resources_paths()
+
+    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+        resource_dict['fermi_lat']['3fgl']
+        )
+    gamma_spec = get_gamma_spect(fermi_lat_3fgl_catalog, source=source)
 
     electron_positron_flux = get_cosmic_ray_flux_interpol(
         resource_dict['fluxes']['electron_positron'],
@@ -65,12 +68,11 @@ def analysis(
         effective_area_dict,
         proton_spec=proton_spec,
         electron_positron_spec=electron_positron_flux,
+        gamma_spec=gamma_spec,
+        source=source,
         rigidity_cutoff_in_tev=rigidity_cutoff_in_tev,
         relative_flux_below_cutoff=relative_flux_below_cutoff,
         fov_in_deg=fov_in_deg,
-        e_0=e_0,
-        f_0=f_0,
-        gamma=gamma,
         gamma_eff=gamma_eff
         )
 
@@ -81,7 +83,7 @@ def analysis(
         )
     acp_alpha = 1./3.
 
-    # make a coparison of the Fermi-LAT, CTA,
+    # make a coparison of the Fermi-LAT, MAGIC,
     # and ACP integral spectral exclusion zone
     plotting_energy_range = [0.1e-3, 10.]  # in TeV
     # get efficiency scaled acp aeff
@@ -98,10 +100,6 @@ def analysis(
         plot_isez_all=plot_isez_all
         )
 
-    # do the analysis of the 3FGL catalog
-    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
-        resource_dict['fermi_lat']['3fgl']
-        )
     sorted_times_to_detection_map, reduced_catalog = acp.get_time_to_detections(
         fermi_lat_3fgl_catalog,
         a_eff=effective_area_dict['gamma'],
@@ -194,7 +192,7 @@ def get_resources_paths():
             'proton': acp.__path__[0]+'/resources/proton_spec.dat',
         },
         'Aeff': {
-            'cta': acp.__path__[0] + '/resources/cta_aeff_south_50h_all_cuts.dat'
+            'magic': acp.__path__[0] + '/resources/MAGIC_lowZd_Aeff.dat'
         },
         'isez': {
             'fermi_lat': acp.__path__[0] + '/resources/' +
@@ -259,7 +257,7 @@ def get_3fgl_catalog(file_path):
             'spectral_index': -1*source[spectral_index_index],
             'flux_density': source[flux_density_index]*1e6,
             'beta': -1*source[beta_index],
-            'cutoff': source[cutoff_index],
+            'cutoff': source[cutoff_index]*1e-6,
             'exp_index': source[exp_index]
         }
         source_dict_list.append(source_dict)
@@ -605,12 +603,11 @@ def get_rates_over_energy_figure(
         effective_area_dict,
         proton_spec,
         electron_positron_spec,
+        gamma_spec,
+        source,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
-        e_0=1.,
-        f_0=3e-11,
-        gamma=-2.6,
         gamma_eff=1.0
         ):
     '''
@@ -674,16 +671,14 @@ def get_rates_over_energy_figure(
         elif 'gamma' in particle:
             plot_data, roi_rate = plot_rate_over_energy_power_law_source(
                 effective_area_dict[particle],
+                gamma_spec=gamma_spec,
                 style=linestyle(particle),
-                label=particle,
-                e_0=e_0,
-                f_0=f_0,
-                gamma=gamma,
+                label=source,
                 efficiency=gamma_eff
                 )
         data[particle+'_rate_plot_data'] = plot_data
         data[particle+'_roi_rate'] = roi_rate
-        
+
         if 'electron' in particle or 'proton' in particle:
             data[particle+'_fov_rate'] = fov_rate
 
@@ -854,26 +849,28 @@ def get_rate_charged_diffuse(
 
 def plot_rate_over_energy_power_law_source(
         effective_area,
+        gamma_spec,
         style,
         label,
-        e_0,
-        f_0,
-        gamma,
         efficiency
         ):
     energy_range = gls.get_energy_range(effective_area)
+    energy_range_plot = energy_range.copy()
+    energy_range_plot[1] = 0.1  # make the plot go only until 100GeV
 
     diff_rate = lambda x: (
-        gls.power_law(10**x, f_0=f_0, gamma=gamma, e_0=e_0) *
+        # gls.power_law(10**x, f_0=f_0, gamma=gamma, e_0=e_0) *
+        gamma_spec(x) *
         effective_area(x)*efficiency)
 
     integrand = lambda x: (
-        gls.power_law(x, f_0=f_0, gamma=gamma, e_0=e_0) *
+        # gls.power_law(x, f_0=f_0, gamma=gamma, e_0=e_0) *
+        gamma_spec(np.log10(x)) *
         effective_area(np.log10(x))*efficiency)
 
     plot_data_x, plot_data_y = plot_over_energy_log_log(
         diff_rate,
-        energy_range=energy_range,
+        energy_range=energy_range_plot,
         style=style,
         label=label,
         ylabel='Rate / (s TeV)$^{-1}$')
@@ -909,14 +906,14 @@ def get_isez_figure(
     '''
     crab_broad_spectrum = get_crab_spectrum(resource_dict['crab']['broad_sed'])
 
-    # get cta sensitivity parameters as stated on website
-    cta_aeff = gls.get_effective_area(resource_dict['Aeff']['cta'])
-    cta_sigma_bg = 3.997  # bg per second in the on region, from summing bins
-    cta_alpha = 0.2  # five off regions
+    # get magic sensitivity parameters as stated in ul paper
+    magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
+    magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
+    magic_alpha = 0.2  # five off regions
     n_points_to_plot = 21
     if is_test:
         n_points_to_plot = 1
-    cta_energy_range = gls.get_energy_range(cta_aeff)
+    magic_energy_range = gls.get_energy_range(magic_aeff)
 
     fermi_lat_isez = acp.get_fermi_lat_isez(resource_dict['isez']['fermi_lat'])
 
@@ -942,16 +939,16 @@ def get_isez_figure(
         ylabel='dN/dE / (cm$^2$ s TeV)$^{-1}$',
         log_resolution=0.05)
 
-    # cta_energy_x, cta_dn_de_y = gls.plot_sens_spectrum_figure(
+    # magic_energy_x, magic_dn_de_y = gls.plot_sens_spectrum_figure(
     gls.plot_sens_spectrum_figure(
-        sigma_bg=cta_sigma_bg,
-        alpha=cta_alpha,
+        sigma_bg=magic_sigma_bg,
+        alpha=magic_alpha,
         t_obs=t_obs,
-        a_eff_interpol=cta_aeff,
-        e_0=cta_energy_range[0]*5.,
+        a_eff_interpol=magic_aeff,
+        e_0=magic_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='b',
-        label='CTA south %2.1fh'%(t_obs/3600.)
+        label='MAGIC %2.1fh'%(t_obs/3600.)
         )
 
     # plot the acp sensitivity
@@ -1159,12 +1156,72 @@ def plot_t_est_histogram(sorted_t_est_list, style, label):
     '''
     This function plots the t_est_histogram into the current figure
     '''
-    yvals = np.arange(len(sorted_t_est_list))+1
+    yvals = np.arange(len(sorted_t_est_list))
     plt.step(sorted_t_est_list, yvals, style, label=label)
     plt.loglog()
     plt.xlabel('time / s')
     plt.ylabel('number of src')
-    plt.title('Fermi-LAT 3FGL sources detected over time')
+    plt.title('Fermi-LAT 3FGL sources detected, |b|>15$^{\circ}$ ')
 
     plot_data = np.vstack((sorted_t_est_list, yvals)).T
     return plot_data
+
+
+def get_gamma_spect(fermi_cat, source):
+    '''
+    This function produces a function for
+    calculating the spectum of a named source
+    in the fermi-lat 3fgl
+    '''
+
+    source_dict = get_gamma_dict(fermi_cat, source)
+
+    if source_dict['spec_type'] == 'PowerLaw':
+        return_func = lambda x: gls.power_law(
+            energy=10**x,
+            f_0=source_dict['f_0'],
+            gamma=source_dict['gamma'],
+            e_0=source_dict['e_0']
+            )
+
+    elif source_dict['spec_type'] == 'LogParabola':
+        return_func = lambda x: log_parabola_3fgl(
+            10**x,
+            f_0=source_dict['f_0'],
+            alpha=source_dict['gamma'],
+            e_0=source_dict['e_0'],
+            beta=source_dict['beta']
+            )
+
+    elif source_dict['spec_type'] == 'PLExpCutoff' or source_dict['spec_type'] == 'PLSuperExpCutoff':
+        return_func = lambda x: pl_super_exp_cutoff_3fgl(
+            10**x,
+            f_0=source_dict['f_0'],
+            gamma=source_dict['gamma'],
+            e_0=source_dict['e_0'],
+            cutoff=source_dict['cutoff'],
+            exp_index=source_dict['exp_index']
+            )
+
+    return return_func
+
+
+def get_gamma_dict(fermi_cat, source):
+    '''
+    search the dict for a source and produce its properties
+    '''
+    for cat_entry in fermi_cat:
+        if cat_entry['name'] == source:
+            return_dict = {
+                'name': source,
+                'e_0': cat_entry['pivot_energy'],
+                'f_0': cat_entry['flux_density'],
+                'gamma': cat_entry['spectral_index'],
+                'beta': cat_entry['beta'],
+                'cutoff': cat_entry['cutoff'],
+                'exp_index': cat_entry['exp_index'],
+                'spec_type': cat_entry['spec_type']
+            }
+            break
+
+    return return_dict

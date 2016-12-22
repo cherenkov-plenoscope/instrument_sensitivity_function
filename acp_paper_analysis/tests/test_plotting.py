@@ -17,7 +17,13 @@ def test_get_rates_over_energy_figure():
             acp.__path__[0] + '/resources/test_infolder/'
     )
     resource_dict = acp.get_resources_paths()
-
+    
+    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+        resource_dict['fermi_lat']['3fgl']
+        )
+    source = '3FGL J1836.2+5925'
+    gamma_spec = acp.get_gamma_spect(fermi_lat_3fgl_catalog, source)
+    
     electron_positron_flux = acp.get_cosmic_ray_flux_interpol(
         resource_dict['fluxes']['electron_positron'],
         base_energy_in_TeV=1e-3,
@@ -35,11 +41,10 @@ def test_get_rates_over_energy_figure():
         effective_area_dict,
         proton_spec=proton_flux,
         electron_positron_spec=electron_positron_flux,
+        gamma_spec=gamma_spec,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
-        e_0=1.,
-        f_0=1e-10,
-        gamma=-2.6
+        source=source
         )
 
     assert isinstance(figure, matplotlib.figure.Figure)
@@ -114,42 +119,33 @@ def test_plot_rate_over_energy_power_law_source():
     effective_area_dict = acp.get_interpolated_effective_areas(
             acp.__path__[0] + '/resources/test_infolder/'
     )
-
     effective_area = effective_area_dict['gamma']
     style = 'k'
-    label = 'gamma'
-    e_0 = 1.
-    f_0 = 1e11
-    gamma = -2.6
+    label = ''
+
+    resource_dict = acp.get_resources_paths()
+    
+    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+        resource_dict['fermi_lat']['3fgl']
+        )
+    source = '3FGL J1836.2+5925'
+    gamma_spec = acp.get_gamma_spect(fermi_lat_3fgl_catalog, source)
+    
 
     plot_data, rate = acp.plot_rate_over_energy_power_law_source(
         effective_area=effective_area,
+        gamma_spec=gamma_spec,
         style=style,
         label=label,
-        e_0=e_0,
-        f_0=f_0,
-        gamma=gamma,
-        efficiency=1.0
+        efficiency=0.99
         )
 
     plot_data2, rate2 = acp.plot_rate_over_energy_power_law_source(
         effective_area=effective_area,
+        gamma_spec=gamma_spec,
         style=style,
         label=label,
-        e_0=e_0,
-        f_0=f_0*1.05,
-        gamma=gamma,
         efficiency=1.0
-        )
-
-    plot_data3, rate3 = acp.plot_rate_over_energy_power_law_source(
-        effective_area=effective_area,
-        style=style,
-        label=label,
-        e_0=e_0,
-        f_0=f_0*1.05,
-        gamma=gamma,
-        efficiency=0.99
         )
 
     assert isinstance(plot_data, numpy.ndarray)
@@ -162,10 +158,9 @@ def test_plot_rate_over_energy_power_law_source():
     assert numpy.any(plot_data2[:, 0] > -7)
     assert rate > 0  # check that the rate is bigger than 0
 
-    # check that with a higher flux norm., you get a higher rate
-    # and with higher efficiency also
+    # check that with a higher efficiency, you get a higher rate
     assert rate2 > rate
-    assert rate2 > rate3
+
 
 
 def test_get_t_est_histogram():
