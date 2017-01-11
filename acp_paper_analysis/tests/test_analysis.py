@@ -87,6 +87,7 @@ def test_get_gamma_effective_area_figure():
 #         assert isinstance(
 #             result_dict['data'][data_name], numpy.ndarray
 #             )
+import tempfile
 
 
 def test_get_time_to_detections():
@@ -102,14 +103,15 @@ def test_get_time_to_detections():
         resource_dict['fermi_lat']['3fgl']
         )
 
-    detection_time_list, reduced_catalog = acp.get_time_to_detections(
-        fermi_lat_3fgl_catalog,
-        a_eff=magic_aeff,
-        sigma_bg=sigma_bg_test,
-        alpha=alpha_test,
-        is_test=True,
-        out_path='/home/mknoetig/Desktop/'
-        )
+    with tempfile.TemporaryDirectory() as tempfolder:
+        detection_time_list, reduced_catalog = acp.get_time_to_detections(
+            fermi_lat_3fgl_catalog,
+            a_eff=magic_aeff,
+            sigma_bg=sigma_bg_test,
+            alpha=alpha_test,
+            is_test=True,
+            out_path=tempfolder
+            )
 
     for detection in detection_time_list:
         assert detection[0] >= 0
