@@ -23,10 +23,10 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
+        'astropy',
         'matplotlib',
         'docopt',
-        'pyfits',
-        'tqdm'
+        'tqdm',
         'gamma_limits_sensitivity'
     ],
     tests_require=['pytest']
