@@ -6,14 +6,13 @@ This is the hard working code in order to create publication plots
 # import matplotlib.pyplot as plt
 import os
 import csv
-import pyfits
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from scipy.interpolate import interpolate
 from scipy import integrate
-
+from astropy.table import Table
 import acp_paper_analysis as acp
 import gamma_limits_sensitivity as gls
 
@@ -227,43 +226,36 @@ def get_3fgl_catalog(file_path):
 
     and transform them into my standard units: TeV, cm^2, s
     '''
-    hdu_list = pyfits.open(file_path)
+    name_map = {
+        'Source_Name': 'name',
+        'RAJ2000': 'ra',
+        'DEJ2000': 'dec',
+        'GLON': 'gal_long',
+        'GLAT': 'gal_lat',
+        'SpectrumType': 'spec_type',
+        'Pivot_Energy': 'pivot_energy',
+        'Spectral_Index': 'spectral_index',
+        'Flux_Density': 'flux_density',
+        'beta': 'beta',
+        'Cutoff': 'cutoff',
+        'Exp_Index': 'exp_index',
+    }
 
-    # make a list of dcts for each source and return it
-    name_index = 0
-    ra_index = 1
-    dec_index = 2
-    gal_long_index = 3
-    gal_lat_index = 4
-    spec_type_index = 21
-    pivot_energy_index = 13
-    spectral_index_index = 22
-    flux_density_index = 14
+    t = Table.read(file_path)
+    t.remove_columns(set(t.dtype.names).difference(name_map.keys()))
+    df = t.to_pandas()
+    df.rename(columns=name_map, inplace=True)
 
-    beta_index = 24
-    cutoff_index = 26
-    exp_index = 28
+    df.spectral_index *= -1
+    df.beta *= -1
+    df.pivot_energy *= 1e-6
+    df.flux_density *= 1e6
+    df.cutoff *= 1e-6
 
-    source_dict_list = []
-    for source in hdu_list[1].data:
-        source_dict = {
-            'name': source[name_index],
-            'ra': source[ra_index],
-            'dec': source[dec_index],
-            'gal_long': source[gal_long_index],
-            'gal_lat': source[gal_lat_index],
-            'spec_type': source[spec_type_index],
-            'pivot_energy': source[pivot_energy_index]*1e-6,
-            'spectral_index': -1*source[spectral_index_index],
-            'flux_density': source[flux_density_index]*1e6,
-            'beta': -1*source[beta_index],
-            'cutoff': source[cutoff_index]*1e-6,
-            'exp_index': source[exp_index]
-        }
-        source_dict_list.append(source_dict)
+    df['spec_type'] = df.spec_type.str.strip()
+    df['name'] = df.name.str.strip()
 
-    return source_dict_list
-
+    return list(df.T.to_dict().values())
 
 def get_cosmic_ray_flux_interpol(
         file_path,
@@ -758,7 +750,7 @@ def plot_rate_over_energy_charged_diffuse(
         ):
 
     energy_range = gls.get_energy_range(effective_area)
-    
+
     solid_angle_ratio = lambda x: (
         acp.solid_angle_of_cone(
             psf_electromagnetic_in_deg(x)
@@ -807,7 +799,7 @@ def get_rate_charged_diffuse(
 
     charged_spec_cutoff = cutoff_spec(
         charged_spec, cutoff, relative_flux_below_cutoff)
-   
+
     if roi_radius_in_deg is not None:
         solid_angle_ratio = (
             acp.solid_angle_of_cone(roi_radius_in_deg) /

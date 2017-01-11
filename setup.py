@@ -23,9 +23,9 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
+        'astropy',
         'matplotlib',
         'docopt',
-        'pyfits',
         'tqdm',
         'gamma_limits_sensitivity'
     ],
