@@ -22,7 +22,7 @@ def analysis(
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
-        source='3FGL J1836.2+5925',
+        source='3FGL J2254.0+1608',
         gamma_eff=0.67,
         is_test=False,
         plot_isez_all=False,
@@ -99,6 +99,23 @@ def analysis(
         plot_isez_all=plot_isez_all
         )
 
+    grb_130427A_dict = {
+        'grb_130427A_seconds_to_det': np.array([acp.time_to_detection(
+            f_0=1.e-7,
+            gamma=-2.,
+            e_0=1.,
+            a_eff_interpol=effective_area_dict['gamma'],
+            sigma_bg=acp_sigma_bg,
+            alpha=acp_alpha)]),
+
+        'grb_130427A_gamma_rate': np.array([
+            1.e-7*gls.effective_area_averaged_flux(
+                gamma=-2.,
+                e_0=1.,
+                a_eff_interpol=effective_area_dict['gamma'])
+            ])
+        }
+
     sorted_times_to_detection_map, reduced_catalog = acp.get_time_to_detections(
         fermi_lat_3fgl_catalog,
         a_eff=effective_area_dict['gamma'],
@@ -116,7 +133,7 @@ def analysis(
         'isez_figure': isez_figure,
         't_est_figure': t_est_histogram
         }
-    data = merge_dicts(rates_data, isez_data, t_est_data)
+    data = merge_dicts(rates_data, isez_data, t_est_data, grb_130427A_dict)
 
     dictionary = {
         'plots': figures,

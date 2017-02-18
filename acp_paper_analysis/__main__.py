@@ -11,7 +11,7 @@ Options:
   --cutoff=<arg>        Rigidity cutoff / TV
   --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
   --fov=<arg>           Field of View of the simulated ACP / deg (typical: 6.5 deg)
-  --src=<arg>           Optional: Gamma source 3FGL name for gamma-ray rate plot [default: 3FGL J1836.2+5925]
+  --src=<arg>           Optional: Gamma source 3FGL name for gamma-ray rate plot [default: 3FGL J2254.0+1608]
   --plot_isez_all       Optional: Plot many ISEZ curves for analysis
   --out=<path>          Optional: Argument for specifying the output directory
   -h --help             Show this screen.
@@ -60,7 +60,7 @@ def main():
     '''
     version = pkg_resources.require("acp_paper_analysis")[0].version
     arguments = docopt(__doc__, version=version)
-   
+
     dictionary = acp.analysis(
         arguments['--in'],
         rigidity_cutoff_in_tev=float(arguments['--cutoff']),
