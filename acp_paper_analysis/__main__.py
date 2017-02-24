@@ -2,20 +2,20 @@
 This is the main of the ul method paper demonstration
 
 Usage:
-  acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
-  acp_paper_analysis (-h | --help)
-  acp_paper_analysis --version
+    acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
+    acp_paper_analysis (-h | --help)
+    acp_paper_analysis --version
 
 Options:
-  --in=<path>           Path to folder with effective areas of the acp
-  --cutoff=<arg>        Rigidity cutoff / TeV
-  --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
-  --fov=<arg>           Field of View of the simulated ACP / deg (typical: 6.5 deg)
-  --src=<arg>           Optional: Gamma source 3FGL name for gamma-ray rate plot [default: 3FGL J2254.0+1608]
-  --plot_isez_all       Optional: Plot many ISEZ curves for analysis
-  --out=<path>          Optional: Argument for specifying the output directory
-  -h --help             Show this screen.
-  --version             Show version.
+    --in=<path>           Path to folder with effective areas of the acp
+    --cutoff=<arg>        Rigidity cutoff / TeV
+    --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
+    --fov=<arg>           Field of View of the simulated ACP / deg (typical: 6.5 deg)
+    --src=<arg>           Optional: Gamma source 3FGL name for gamma-ray rate plot [default: 3FGL J2254.0+1608]
+    --plot_isez_all       Optional: Plot many ISEZ curves for analysis
+    --out=<path>          Optional: Argument for specifying the output directory
+    -h --help             Show this screen.
+    --version             Show version.
 '''
 from docopt import docopt
 import matplotlib.pyplot as plt
@@ -23,6 +23,7 @@ import numpy as np
 import pkg_resources
 import acp_paper_analysis as acp
 import datetime
+from os.path import join
 
 
 def main_logic(arguments, dictionary):
@@ -33,16 +34,16 @@ def main_logic(arguments, dictionary):
     else:
         for plot_name in dictionary['plots']:
             dictionary['plots'][plot_name].savefig(
-                arguments['--out']+'/'+plot_name+'.png',
+                join(arguments['--out'], plot_name+'.png'),
                 bbox_inches='tight'
                 )
             dictionary['plots'][plot_name].savefig(
-                arguments['--out']+'/'+plot_name+'.pdf',
+                join(arguments['--out'], plot_name+'.pdf'),
                 bbox_inches='tight'
                 )
         for data_name in dictionary['data']:
             np.savetxt(
-                arguments['--out']+'/'+data_name+'.csv',
+                join(arguments['--out'], data_name+'.csv'),
                 np.array(dictionary['data'][data_name]),
                 fmt='%.6e',
                 header=(data_name + ', written: ' +

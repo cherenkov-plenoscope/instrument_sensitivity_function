@@ -5,6 +5,7 @@ This is the hard working code in order to create publication plots
 #
 # import matplotlib.pyplot as plt
 import os
+from os.path import join
 import csv
 import datetime
 import numpy as np
@@ -15,6 +16,7 @@ from scipy import integrate
 from astropy.table import Table
 import acp_paper_analysis as acp
 import gamma_limits_sensitivity as gls
+from pkg_resources import resource_filename
 
 
 def analysis(
@@ -180,9 +182,9 @@ def generate_absolute_filepaths(in_folder):
     and scans for the six necessary effective areas.
     '''
     aeff_dict = {
-        'gamma': in_folder + '/gamma_aeff.dat',
-        'electron_positron': in_folder + '/electron_positron_aeff.dat',
-        'proton': in_folder + '/proton_aeff.dat'
+        'gamma': join(in_folder, 'gamma_aeff.dat'),
+        'electron_positron': join(in_folder, 'electron_positron_aeff.dat'),
+        'proton': join(in_folder, 'proton_aeff.dat')
         }
 
     for aeff_name in aeff_dict:
@@ -203,24 +205,32 @@ def get_resources_paths():
     '''
     resource_paths_dict = {
         'fluxes': {
-            'electron_positron': acp.__path__[0] +
-            '/resources/e_plus_e_minus_spec.dat',
-            'proton': acp.__path__[0]+'/resources/proton_spec.dat',
+            'electron_positron': resource_filename(
+                'acp_paper_analysis', 
+                'resources/e_plus_e_minus_spec.dat'),
+            'proton': resource_filename(
+                'acp_paper_analysis', 
+                'resources/proton_spec.dat'),
         },
         'Aeff': {
-            'magic': acp.__path__[0] + '/resources/MAGIC_lowZd_Aeff.dat'
+            'magic': resource_filename(
+                'acp_paper_analysis', 
+                'resources/MAGIC_lowZd_Aeff.dat')
         },
         'isez': {
-            'fermi_lat': acp.__path__[0] + '/resources/' +
-            'FermiLAT_isez_p8r2_source_v6_10yr_gal_north.txt'
+            'fermi_lat': resource_filename(
+                'acp_paper_analysis', 
+                'resources/FermiLAT_isez_p8r2_source_v6_10yr_gal_north.txt')
         },
         'crab': {
-            'broad_sed': acp.__path__[0] +
-            '/resources/crab_nebula_sed_fermi_magic.dat'
+            'broad_sed': resource_filename(
+                'acp_paper_analysis', 
+                'resources/crab_nebula_sed_fermi_magic.dat')
         },
         'fermi_lat': {
-            '3fgl': acp.__path__[0] +
-            '/resources/FermiLAT_3FGL_gll_psc_v16.fit'
+            '3fgl': resource_filename(
+                'acp_paper_analysis', 
+                'resources/FermiLAT_3FGL_gll_psc_v16.fit')
         }
     }
     return resource_paths_dict
@@ -1124,7 +1134,7 @@ def get_time_to_detections(
         ]
 
     if out_path is not None:
-        with open(out_path+'/time_to_detections.csv', 'w') as myfile:
+        with open(join(out_path, 'time_to_detections.csv'), 'w') as myfile:
             writer = csv.writer(myfile)
             myfile.write(
                 '# time_to_detections, written: ' +
