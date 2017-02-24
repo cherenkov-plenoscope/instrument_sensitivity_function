@@ -8,7 +8,7 @@ Usage:
 
 Options:
   --in=<path>           Path to folder with effective areas of the acp
-  --cutoff=<arg>        Rigidity cutoff / TV
+  --cutoff=<arg>        Rigidity cutoff / TeV
   --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
   --fov=<arg>           Field of View of the simulated ACP / deg (typical: 6.5 deg)
   --src=<arg>           Optional: Gamma source 3FGL name for gamma-ray rate plot [default: 3FGL J2254.0+1608]
