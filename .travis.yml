@@ -9,6 +9,6 @@ install:
 - pip install -r requirements.txt
 - pip install pytest-cov
 script:
-- py.test --cov acp_paper_analysis
+- py.test --cov acp_instrument_sensitivity_function
 #after_success:
 #- bash <(curl -s https://codecov.io/bash)

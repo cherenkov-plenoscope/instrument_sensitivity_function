@@ -11,10 +11,11 @@ __installation__
 
 ```
 git clone https://github.com/TheBigLebowSky/instrument_sensitivity_function.git
-cd acp_paper_analysis/
+cd instrument_sensitivity_function/
 pip install -r requirements.txt
 ```
 
 __Usage__
+Estimate the Integral Spectral Exclusion Zone (ISEZ)
 
-    acp_paper_analysis --in=<in folder to where the csvs are>  --cutoff=10e-3 # 10GV --rel_flux=0.05<rel. flux secondary to primary particles> --fov=6.5 <in degree> --src=<3FGL name of comparison source> --out=<folder>
+    acp_isez --in=<in folder to where the csvs are>  --cutoff=10e-3 # 10GV --rel_flux=0.05<rel. flux secondary to primary particles> --fov=6.5 <in degree> --src=<3FGL name of comparison source> --out=<folder>

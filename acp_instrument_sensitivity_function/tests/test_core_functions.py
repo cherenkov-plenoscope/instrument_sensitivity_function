@@ -2,7 +2,7 @@
 This is a set of test in order to check the
 core functions
 '''
-import acp_paper_analysis as acp
+import acp_instrument_sensitivity_function as acp
 import gamma_limits_sensitivity as gls
 
 import numpy as np

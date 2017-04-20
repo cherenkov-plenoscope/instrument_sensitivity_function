@@ -1,10 +1,10 @@
 '''
-This is the main of the ul method paper demonstration
+Estimate the Integral Spectral Exclusion Zone (ISEZ) of the ACP.
 
 Usage:
-    acp_paper_analysis --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
-    acp_paper_analysis (-h | --help)
-    acp_paper_analysis --version
+    acp_isez --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
+    acp_isez (-h | --help)
+    acp_isez --version
 
 Options:
     --in=<path>           Path to folder with effective areas of the acp
@@ -21,7 +21,7 @@ from docopt import docopt
 import matplotlib.pyplot as plt
 import numpy as np
 import pkg_resources
-import acp_paper_analysis as acp
+import acp_instrument_sensitivity_function as acp
 import datetime
 from os.path import join
 
@@ -59,7 +59,7 @@ def main():
     '''
     The main.
     '''
-    version = pkg_resources.require("acp_paper_analysis")[0].version
+    version = pkg_resources.require("acp_instrument_sensitivity_function")[0].version
     arguments = docopt(__doc__, version=version)
 
     dictionary = acp.analysis(

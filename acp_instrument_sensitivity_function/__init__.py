@@ -14,7 +14,7 @@ from tqdm import tqdm
 from scipy.interpolate import interpolate
 from scipy import integrate
 from astropy.table import Table
-import acp_paper_analysis as acp
+import acp_instrument_sensitivity_function as acp
 import gamma_limits_sensitivity as gls
 from pkg_resources import resource_filename
 
@@ -206,30 +206,30 @@ def get_resources_paths():
     resource_paths_dict = {
         'fluxes': {
             'electron_positron': resource_filename(
-                'acp_paper_analysis', 
+                'acp_instrument_sensitivity_function', 
                 'resources/e_plus_e_minus_spec.dat'),
             'proton': resource_filename(
-                'acp_paper_analysis', 
+                'acp_instrument_sensitivity_function', 
                 'resources/proton_spec.dat'),
         },
         'Aeff': {
             'magic': resource_filename(
-                'acp_paper_analysis', 
+                'acp_instrument_sensitivity_function', 
                 'resources/MAGIC_lowZd_Aeff.dat')
         },
         'isez': {
             'fermi_lat': resource_filename(
-                'acp_paper_analysis', 
+                'acp_instrument_sensitivity_function', 
                 'resources/FermiLAT_isez_p8r2_source_v6_10yr_gal_north.txt')
         },
         'crab': {
             'broad_sed': resource_filename(
-                'acp_paper_analysis', 
+                'acp_instrument_sensitivity_function', 
                 'resources/crab_nebula_sed_fermi_magic.dat')
         },
         'fermi_lat': {
             '3fgl': resource_filename(
-                'acp_paper_analysis', 
+                'acp_instrument_sensitivity_function', 
                 'resources/FermiLAT_3FGL_gll_psc_v16.fit')
         }
     }

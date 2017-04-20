@@ -17,7 +17,7 @@ setup(
         ]},
     entry_points={
         'console_scripts': [
-            'acp_instrument_sensitivity_function = acp_instrument_sensitivity_function.__main__:main'
+            'acp_isez = acp_instrument_sensitivity_function.__main__:main'
         ]
     },
     install_requires=[
