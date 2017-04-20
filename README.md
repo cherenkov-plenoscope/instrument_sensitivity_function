@@ -1,11 +1,16 @@
-# acp_paper_analysis
-This repo hosts the high level analysis and plotting methods for the first ACP paper!
+Instrument Sensitivity Function
+-------------------------------
+[![Arxiv](https://img.shields.io/badge/astro--ph.HE-arXiv%3A1701.06048-B31B1B.svg)](https://arxiv.org/abs/1701.06048) [![DOI](https://img.shields.io/badge/doi-10.3847%2F1538--4357%2Faa5b97-blue.svg)](https://doi.org/10.3847/1538-4357/aa5b97) 
 
+for the Atmospheric Cherenkov Plenoscope (ACP)
+
+
+Takes the Instrument Response Functions (IRF)s of an ACP to estimate the time-to-detections for known sources in the gamma-ray sky.
 
 __installation__
 
 ```
-git clone https://github.com/TheBigLebowSky/acp_paper_analysis.git
+git clone https://github.com/TheBigLebowSky/instrument_sensitivity_function.git
 cd acp_paper_analysis/
 pip install -r requirements.txt
 ```
