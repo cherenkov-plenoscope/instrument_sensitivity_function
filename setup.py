@@ -1,23 +1,23 @@
 from setuptools import setup
 
 setup(
-    name='acp_paper_analysis',
-    version='0.1',
-    description='High level analysis & plotting methods for first ACP paper',
-    url='https://github.com/TheBigLebowSky/acp_paper_analysis',
+    name='acp_instrument_sensitivity_function',
+    version='0.1.1',
+    description='Estimating the Integral Spectral Exclusion Zone of the ACP to calculate time-to-detections in the gamma-ray sky.',
+    url='https://github.com/TheBigLebowSky/acp_instrument_sensitivity_function',
     author='Max Ahnen',
     author_email='m.knoetig@gmail.com',
     licence='MIT',
     packages=[
-        'acp_paper_analysis'
+        'acp_instrument_sensitivity_function'
     ],
-    package_data={'acp_paper_analysis': [
+    package_data={'acp_instrument_sensitivity_function': [
         'resources/*',
         'resources/test_infolder/*'
         ]},
     entry_points={
         'console_scripts': [
-            'acp_paper_analysis = acp_paper_analysis.__main__:main'
+            'acp_instrument_sensitivity_function = acp_instrument_sensitivity_function.__main__:main'
         ]
     },
     install_requires=[
