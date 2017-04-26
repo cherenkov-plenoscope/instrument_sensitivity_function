@@ -612,62 +612,61 @@ def get_rates_over_energy_figure(
         mass=p_mass)
 
     figure = plt.figure()
-    data = {}
+    rates_data = {}
 
-    for particle in effective_area_dict:
-        if 'electron' in particle:
-            plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
-                effective_area_dict[particle],
-                style=linestyle(particle),
-                label=particle,
-                charged_spec=electron_positron_spec,
-                cutoff=e_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                fov_in_deg=fov_in_deg
-                )
-            fov_rate = get_rate_charged_diffuse(
-                effective_area_dict[particle],
-                charged_spec=electron_positron_spec,
-                cutoff=e_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                roi_radius_in_deg=fov_in_deg/2.,
-                fov_in_deg=fov_in_deg
-                )
-        elif 'proton' in particle:
-            plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
-                effective_area_dict[particle],
-                style=linestyle(particle),
-                label=particle,
-                charged_spec=proton_spec,
-                cutoff=p_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                fov_in_deg=fov_in_deg
-                )
-            fov_rate = get_rate_charged_diffuse(
-                effective_area_dict[particle],
-                charged_spec=electron_positron_spec,
-                cutoff=e_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                roi_radius_in_deg=fov_in_deg/2.,
-                fov_in_deg=fov_in_deg
-                )
-        elif 'gamma' in particle:
-            plot_data, roi_rate = plot_rate_over_energy_power_law_source(
-                effective_area_dict[particle],
-                gamma_spec=gamma_spec,
-                style=linestyle(particle),
-                label=source,
-                efficiency=gamma_eff
-                )
-        data[particle+'_rate_plot_data'] = plot_data
-        data[particle+'_roi_rate'] = roi_rate
+    # Electron Positron
+    ep_plot_data, ep_roi_rate = plot_rate_over_energy_charged_diffuse(
+        effective_area_dict['electron_positron'],
+        style=linestyle('electron_positron'),
+        label='electron_positron',
+        charged_spec=electron_positron_spec,
+        cutoff=e_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        fov_in_deg=fov_in_deg)
+    ep_fov_rate = get_rate_charged_diffuse(
+        effective_area_dict['electron_positron'],
+        charged_spec=electron_positron_spec,
+        cutoff=e_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        roi_radius_in_deg=fov_in_deg/2.,
+        fov_in_deg=fov_in_deg)
+    rates_data['electron_positron'+'_rate_plot_data'] = ep_plot_data
+    rates_data['electron_positron'+'_roi_rate'] = ep_roi_rate
+    rates_data['electron_positron'+'_fov_rate'] = ep_fov_rate
 
-        if 'electron' in particle or 'proton' in particle:
-            data[particle+'_fov_rate'] = fov_rate
+    # Proton
+    p_plot_data, p_roi_rate = plot_rate_over_energy_charged_diffuse(
+        effective_area_dict['proton'],
+        style=linestyle('proton'),
+        label='proton',
+        charged_spec=proton_spec,
+        cutoff=p_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        fov_in_deg=fov_in_deg)
+    p_fov_rate = get_rate_charged_diffuse(
+        effective_area_dict['proton'],
+        charged_spec=proton_spec,
+        cutoff=e_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        roi_radius_in_deg=fov_in_deg/2.,
+        fov_in_deg=fov_in_deg)
+    rates_data['proton'+'_rate_plot_data'] = p_plot_data
+    rates_data['proton'+'_roi_rate'] = p_roi_rate
+    rates_data['proton'+'_fov_rate'] = p_fov_rate
+
+    # Gamma
+    g_plot_data, g_roi_rate = plot_rate_over_energy_power_law_source(
+        effective_area_dict['gamma'],
+        gamma_spec=gamma_spec,
+        style=linestyle('gamma'),
+        label=source,
+        efficiency=gamma_eff)
+    rates_data['gamma'+'_rate_plot_data'] = g_plot_data
+    rates_data['gamma'+'_roi_rate'] = g_roi_rate
 
     plt.title('Diff. Rate')
     plt.legend(loc='best', fontsize=10)
-    return figure, data
+    return figure, rates_data
 
 
 def cutoff_spec(
