@@ -20,7 +20,9 @@ from pkg_resources import resource_filename
 
 
 def analysis(
-        in_folder,
+        gamma_collection_area_path,
+        electron_collection_acceptance_path, 
+        proton_collection_acceptance_path,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
@@ -37,7 +39,11 @@ def analysis(
     lower resolution in order to speed things up.
     '''
     # prepare the data
-    effective_area_dict = get_interpolated_effective_areas(in_folder)
+    effective_area_dict = {
+        'gamma': gls.get_effective_area(gamma_collection_area_path),
+        'electron_positron': gls.get_effective_area(electron_collection_acceptance_path),
+        'proton': gls.get_effective_area(proton_collection_acceptance_path)
+    }
     resource_dict = get_resources_paths()
 
     fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
@@ -154,48 +160,6 @@ def merge_dicts(*dict_args):
     for dictionary in dict_args:
         result.update(dictionary)
     return result
-
-
-def get_interpolated_effective_areas(in_folder):
-    aeff_file_paths = acp.generate_absolute_filepaths(in_folder)
-
-    effective_areas_dict = {
-        'gamma': gls.get_effective_area(
-                aeff_file_paths['gamma']
-                )
-        ,
-        'electron_positron': gls.get_effective_area(
-                aeff_file_paths['electron_positron']
-                )
-        ,
-        'proton': gls.get_effective_area(
-                aeff_file_paths['proton']
-                )
-    }
-
-    return effective_areas_dict
-
-
-def generate_absolute_filepaths(in_folder):
-    '''
-    This function looks into the provided in folder
-    and scans for the six necessary effective areas.
-    '''
-    aeff_dict = {
-        'gamma': join(in_folder, 'gamma_aeff.dat'),
-        'electron_positron': join(in_folder, 'electron_positron_aeff.dat'),
-        'proton': join(in_folder, 'proton_aeff.dat')
-        }
-
-    for aeff_name in aeff_dict:
-        if os.path.isfile(aeff_dict[aeff_name]) is False:
-            raise ValueError(
-                aeff_dict[aeff_name] +
-                ' was not found. please' +
-                ' provide a correct path to the effective area for ' +
-                aeff_name
-                )
-    return aeff_dict
 
 
 def get_resources_paths():
