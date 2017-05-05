@@ -2,12 +2,14 @@
 Estimate the Integral Spectral Exclusion Zone (ISEZ) of the ACP.
 
 Usage:
-    acp_isez --in=<path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
+    acp_isez --gamma_area=<g_path> --electron_acceptance=<e_path> --proton_acceptance=<p_path> --cutoff=<arg> --rel_flux=<arg> --fov=<arg> [--src=<arg> --plot_isez_all --out=<path>]
     acp_isez (-h | --help)
     acp_isez --version
 
 Options:
-    --in=<path>           Path to folder with effective areas of the acp
+    --gamma_area=<g_path>           Path to the collection area (area) for a point like gamma-ray source.  
+    --electron_acceptance=<e_path>  Path to the collection acceptacne (area*solid angle) IRF for a diffuse electrons.
+    --proton_acceptance=<p_path>    Path to the collection acceptacne (area*solid angle) IRF for a diffuse protons.
     --cutoff=<arg>        Rigidity cutoff / TV
     --rel_flux=<arg>      Relative flux intensity below rigidity cutoff
     --fov=<arg>           Field of View of the simulated ACP / deg (typical: 6.5 deg)
@@ -63,7 +65,9 @@ def main():
     arguments = docopt(__doc__, version=version)
 
     dictionary = acp.analysis(
-        arguments['--in'],
+        gamma_collection_area_path=arguments['--gamma_area'],
+        electron_collection_acceptance_path=arguments['--electron_acceptance'], 
+        proton_collection_acceptance_path=arguments['--proton_acceptance'],
         rigidity_cutoff_in_tev=float(arguments['--cutoff']),
         relative_flux_below_cutoff=float(arguments['--rel_flux']),
         fov_in_deg=float(arguments['--fov']),

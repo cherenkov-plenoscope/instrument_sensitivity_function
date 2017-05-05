@@ -20,7 +20,9 @@ from pkg_resources import resource_filename
 
 
 def analysis(
-        in_folder,
+        gamma_collection_area_path,
+        electron_collection_acceptance_path, 
+        proton_collection_acceptance_path,
         rigidity_cutoff_in_tev=10e-3,
         relative_flux_below_cutoff=0.1,
         fov_in_deg=6.5,
@@ -37,7 +39,11 @@ def analysis(
     lower resolution in order to speed things up.
     '''
     # prepare the data
-    effective_area_dict = get_interpolated_effective_areas(in_folder)
+    effective_area_dict = {
+        'gamma': gls.get_effective_area(gamma_collection_area_path),
+        'electron_positron': gls.get_effective_area(electron_collection_acceptance_path),
+        'proton': gls.get_effective_area(proton_collection_acceptance_path)
+    }
     resource_dict = get_resources_paths()
 
     fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
@@ -154,48 +160,6 @@ def merge_dicts(*dict_args):
     for dictionary in dict_args:
         result.update(dictionary)
     return result
-
-
-def get_interpolated_effective_areas(in_folder):
-    aeff_file_paths = acp.generate_absolute_filepaths(in_folder)
-
-    effective_areas_dict = {
-        'gamma': gls.get_effective_area(
-                aeff_file_paths['gamma']
-                )
-        ,
-        'electron_positron': gls.get_effective_area(
-                aeff_file_paths['electron_positron']
-                )
-        ,
-        'proton': gls.get_effective_area(
-                aeff_file_paths['proton']
-                )
-    }
-
-    return effective_areas_dict
-
-
-def generate_absolute_filepaths(in_folder):
-    '''
-    This function looks into the provided in folder
-    and scans for the six necessary effective areas.
-    '''
-    aeff_dict = {
-        'gamma': join(in_folder, 'gamma_aeff.dat'),
-        'electron_positron': join(in_folder, 'electron_positron_aeff.dat'),
-        'proton': join(in_folder, 'proton_aeff.dat')
-        }
-
-    for aeff_name in aeff_dict:
-        if os.path.isfile(aeff_dict[aeff_name]) is False:
-            raise ValueError(
-                aeff_dict[aeff_name] +
-                ' was not found. please' +
-                ' provide a correct path to the effective area for ' +
-                aeff_name
-                )
-    return aeff_dict
 
 
 def get_resources_paths():
@@ -648,62 +612,61 @@ def get_rates_over_energy_figure(
         mass=p_mass)
 
     figure = plt.figure()
-    data = {}
+    rates_data = {}
 
-    for particle in effective_area_dict:
-        if 'electron' in particle:
-            plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
-                effective_area_dict[particle],
-                style=linestyle(particle),
-                label=particle,
-                charged_spec=electron_positron_spec,
-                cutoff=e_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                fov_in_deg=fov_in_deg
-                )
-            fov_rate = get_rate_charged_diffuse(
-                effective_area_dict[particle],
-                charged_spec=electron_positron_spec,
-                cutoff=e_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                roi_radius_in_deg=fov_in_deg/2.,
-                fov_in_deg=fov_in_deg
-                )
-        elif 'proton' in particle:
-            plot_data, roi_rate = plot_rate_over_energy_charged_diffuse(
-                effective_area_dict[particle],
-                style=linestyle(particle),
-                label=particle,
-                charged_spec=proton_spec,
-                cutoff=p_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                fov_in_deg=fov_in_deg
-                )
-            fov_rate = get_rate_charged_diffuse(
-                effective_area_dict[particle],
-                charged_spec=electron_positron_spec,
-                cutoff=e_energy_cutoff,
-                relative_flux_below_cutoff=relative_flux_below_cutoff,
-                roi_radius_in_deg=fov_in_deg/2.,
-                fov_in_deg=fov_in_deg
-                )
-        elif 'gamma' in particle:
-            plot_data, roi_rate = plot_rate_over_energy_power_law_source(
-                effective_area_dict[particle],
-                gamma_spec=gamma_spec,
-                style=linestyle(particle),
-                label=source,
-                efficiency=gamma_eff
-                )
-        data[particle+'_rate_plot_data'] = plot_data
-        data[particle+'_roi_rate'] = roi_rate
+    # Electron Positron
+    ep_plot_data, ep_roi_rate = plot_rate_over_energy_charged_diffuse(
+        effective_area_dict['electron_positron'],
+        style=linestyle('electron_positron'),
+        label='electron_positron',
+        charged_spec=electron_positron_spec,
+        cutoff=e_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        fov_in_deg=fov_in_deg)
+    ep_fov_rate = get_rate_charged_diffuse(
+        effective_area_dict['electron_positron'],
+        charged_spec=electron_positron_spec,
+        cutoff=e_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        roi_radius_in_deg=fov_in_deg/2.,
+        fov_in_deg=fov_in_deg)
+    rates_data['electron_positron'+'_rate_plot_data'] = ep_plot_data
+    rates_data['electron_positron'+'_roi_rate'] = ep_roi_rate
+    rates_data['electron_positron'+'_fov_rate'] = ep_fov_rate
 
-        if 'electron' in particle or 'proton' in particle:
-            data[particle+'_fov_rate'] = fov_rate
+    # Proton
+    p_plot_data, p_roi_rate = plot_rate_over_energy_charged_diffuse(
+        effective_area_dict['proton'],
+        style=linestyle('proton'),
+        label='proton',
+        charged_spec=proton_spec,
+        cutoff=p_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        fov_in_deg=fov_in_deg)
+    p_fov_rate = get_rate_charged_diffuse(
+        effective_area_dict['proton'],
+        charged_spec=proton_spec,
+        cutoff=e_energy_cutoff,
+        relative_flux_below_cutoff=relative_flux_below_cutoff,
+        roi_radius_in_deg=fov_in_deg/2.,
+        fov_in_deg=fov_in_deg)
+    rates_data['proton'+'_rate_plot_data'] = p_plot_data
+    rates_data['proton'+'_roi_rate'] = p_roi_rate
+    rates_data['proton'+'_fov_rate'] = p_fov_rate
+
+    # Gamma
+    g_plot_data, g_roi_rate = plot_rate_over_energy_power_law_source(
+        effective_area_dict['gamma'],
+        gamma_spec=gamma_spec,
+        style=linestyle('gamma'),
+        label=source,
+        efficiency=gamma_eff)
+    rates_data['gamma'+'_rate_plot_data'] = g_plot_data
+    rates_data['gamma'+'_roi_rate'] = g_roi_rate
 
     plt.title('Diff. Rate')
     plt.legend(loc='best', fontsize=10)
-    return figure, data
+    return figure, rates_data
 
 
 def cutoff_spec(
