@@ -5,6 +5,7 @@ import numpy
 import matplotlib
 import scipy
 import tempfile
+from os.path import join 
 
 
 def test_generate_absolute_filepaths():
@@ -22,8 +23,8 @@ def test_get_interpolated_effective_areas():
     This test checks the parsing of the effective area files
     '''
     effective_area_dict = isf.get_interpolated_effective_areas(
-            isf.__path__[0] + '/resources/test_infolder/'
-        )
+        join(isf.__path__[0],'resources','test_infolder')
+    )
 
     # chech that there are 3 (gamma, proton, electron/positron) Aeffs
     assert len(effective_area_dict) == 3
@@ -40,7 +41,7 @@ def test_get_charged_acceptance_figure():
     Test to check a drawing method. Should return figure
     '''
     effective_area_dict = isf.get_interpolated_effective_areas(
-            isf.__path__[0] + '/resources/test_infolder/'
+        join(isf.__path__[0],'resources','test_infolder')
     )
 
     # start producing plots and data products
@@ -55,7 +56,7 @@ def test_get_gamma_effective_area_figure():
     Test to check a drawing method. Should return figure
     '''
     effective_area_dict = isf.get_interpolated_effective_areas(
-            isf.__path__[0] + '/resources/test_infolder/'
+        join(isf.__path__[0],'resources','test_infolder')
     )
 
     # start producing plots and data products
