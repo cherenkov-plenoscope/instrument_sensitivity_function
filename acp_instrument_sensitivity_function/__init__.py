@@ -1,6 +1,3 @@
-'''
-This is the hard working code in order to create publication plots
-'''
 import os
 from os.path import join
 import csv
