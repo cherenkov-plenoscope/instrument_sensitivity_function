@@ -164,30 +164,36 @@ def get_resources_paths():
         'fluxes': {
             'electron_positron': resource_filename(
                 'acp_instrument_sensitivity_function', 
-                'resources/e_plus_e_minus_spec.dat'),
+                'resources/e_plus_e_minus_spec.dat'
+            ),
             'proton': resource_filename(
                 'acp_instrument_sensitivity_function', 
-                'resources/proton_spec.dat'),
+                'resources/proton_spec.dat'
+            )
         },
         'Aeff': {
             'magic': resource_filename(
                 'acp_instrument_sensitivity_function', 
-                'resources/MAGIC_lowZd_Aeff.dat')
+                'resources/MAGIC_lowZd_Aeff.dat'
+            )
         },
         'isez': {
             'fermi_lat': resource_filename(
                 'acp_instrument_sensitivity_function', 
-                'resources/FermiLAT_isez_p8r2_source_v6_10yr_gal_north.txt')
+                'resources/FermiLAT_isez_p8r2_source_v6_10yr_gal_north.txt'
+            )
         },
         'crab': {
             'broad_sed': resource_filename(
                 'acp_instrument_sensitivity_function', 
-                'resources/crab_nebula_sed_fermi_magic.dat')
+                'resources/crab_nebula_sed_fermi_magic.dat'
+            )
         },
         'fermi_lat': {
             '3fgl': resource_filename(
                 'acp_instrument_sensitivity_function', 
-                'resources/FermiLAT_3FGL_gll_psc_v16.fit')
+                'resources/FermiLAT_3FGL_gll_psc_v16.fit'
+            )
         }
     }
     return resource_paths_dict
