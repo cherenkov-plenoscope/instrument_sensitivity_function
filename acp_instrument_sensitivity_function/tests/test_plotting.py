@@ -7,15 +7,13 @@ import gamma_limits_sensitivity as gls
 import numpy
 import matplotlib
 import pytest
+from .effective_area_dict_resources import effective_area_dict
 
 
 def test_get_rates_over_energy_figure():
     '''
     Test to check a drawing method
     '''
-    effective_area_dict = acp.get_interpolated_effective_areas(
-            acp.__path__[0] + '/resources/test_infolder/'
-    )
     resource_dict = acp.get_resources_paths()
     
     fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
@@ -59,9 +57,6 @@ def test_plot_rate_over_energy_charged_diffuse():
     This test shall see if the rate plotting
     and integration of charged particle spectra works
     '''
-    effective_area_dict = acp.get_interpolated_effective_areas(
-            acp.__path__[0] + '/resources/test_infolder/'
-    )
     resource_dict = acp.get_resources_paths()
 
     effective_area = effective_area_dict['electron_positron']
@@ -116,9 +111,6 @@ def test_plot_rate_over_energy_power_law_source():
     This test shall see if the rate plotting
     and integration of charged particle spectra works
     '''
-    effective_area_dict = acp.get_interpolated_effective_areas(
-            acp.__path__[0] + '/resources/test_infolder/'
-    )
     effective_area = effective_area_dict['gamma']
     style = 'k'
     label = ''
