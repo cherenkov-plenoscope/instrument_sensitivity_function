@@ -5,7 +5,30 @@ import numpy
 import matplotlib
 import scipy
 import tempfile
-from os.path import join 
+from os.path import join
+import pkg_resources
+
+
+gamma_collection_area_path = pkg_resources.resource_filename(
+    'acp_instrument_sensitivity_function', 
+    join('resources','test_infolder','gamma_aeff.dat')
+)
+
+electron_collection_acceptance_path = pkg_resources.resource_filename(
+    'acp_instrument_sensitivity_function', 
+    join('resources','test_infolder','electron_positron_aeff.dat')
+)
+
+proton_collection_acceptance_path = pkg_resources.resource_filename(
+    'acp_instrument_sensitivity_function', 
+    join('resources','test_infolder','proton_aeff.dat')
+)
+
+effective_area_dict = {
+    'gamma': gls.get_effective_area(gamma_collection_area_path),
+    'electron_positron': gls.get_effective_area(electron_collection_acceptance_path),
+    'proton': gls.get_effective_area(proton_collection_acceptance_path)
+}
 
 
 def test_generate_absolute_filepaths():
@@ -22,9 +45,6 @@ def test_get_interpolated_effective_areas():
     '''
     This test checks the parsing of the effective area files
     '''
-    effective_area_dict = isf.get_interpolated_effective_areas(
-        join(isf.__path__[0],'resources','test_infolder')
-    )
 
     # chech that there are 3 (gamma, proton, electron/positron) Aeffs
     assert len(effective_area_dict) == 3
@@ -33,17 +53,13 @@ def test_get_interpolated_effective_areas():
         assert isinstance(
             effective_area_dict[particle_type],
             scipy.interpolate.interpolate.interp1d
-            )
+        )
 
 
 def test_get_charged_acceptance_figure():
     '''
     Test to check a drawing method. Should return figure
     '''
-    effective_area_dict = isf.get_interpolated_effective_areas(
-        join(isf.__path__[0],'resources','test_infolder')
-    )
-
     # start producing plots and data products
     effective_area_figure = isf.get_charged_acceptance_figure(
         effective_area_dict)
@@ -55,10 +71,6 @@ def test_get_gamma_effective_area_figure():
     '''
     Test to check a drawing method. Should return figure
     '''
-    effective_area_dict = isf.get_interpolated_effective_areas(
-        join(isf.__path__[0],'resources','test_infolder')
-    )
-
     # start producing plots and data products
     effective_area_figure = isf.get_gamma_effective_area_figure(
         effective_area_dict)
