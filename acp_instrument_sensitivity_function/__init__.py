@@ -20,25 +20,24 @@ from pkg_resources import resource_filename
 
 
 def analysis(
-        gamma_collection_area_path,
-        electron_collection_acceptance_path, 
-        proton_collection_acceptance_path,
-        rigidity_cutoff_in_tev=10e-3,
-        relative_flux_below_cutoff=0.1,
-        fov_in_deg=6.5,
-        source='3FGL J2254.0+1608',
-        gamma_eff=0.67,
-        is_test=False,
-        plot_isez_all=False,
-        out_path=None
-        ):
+    gamma_collection_area_path,
+    electron_collection_acceptance_path, 
+    proton_collection_acceptance_path,
+    rigidity_cutoff_in_tev=10e-3,
+    relative_flux_below_cutoff=0.1,
+    fov_in_deg=6.5,
+    source='3FGL J2254.0+1608',
+    gamma_eff=0.67,
+    is_test=False,
+    plot_isez_all=False,
+    out_path=None
+):
     '''
     This method contains the main logic behind the analysis.
     The options passed in 'arguments' include inpath and potentially
     an outpath. If 'is_test' is set, make the plotting run on
     lower resolution in order to speed things up.
     '''
-    # prepare the data
     effective_area_dict = {
         'gamma': gls.get_effective_area(gamma_collection_area_path),
         'electron_positron': gls.get_effective_area(electron_collection_acceptance_path),
