@@ -1,7 +1,3 @@
-'''
-This is a set of test in order to check the
-analysis functionality
-'''
 import acp_instrument_sensitivity_function as isf
 import gamma_limits_sensitivity as gls
 import pytest
