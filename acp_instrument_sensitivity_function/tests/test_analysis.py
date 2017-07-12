@@ -2,12 +2,13 @@
 This is a set of test in order to check the
 analysis functionality
 '''
-import acp_instrument_sensitivity_function as acp
+import acp_instrument_sensitivity_function as isf
 import gamma_limits_sensitivity as gls
 import pytest
 import numpy
 import matplotlib
 import scipy
+import tempfile
 
 
 def test_generate_absolute_filepaths():
@@ -16,7 +17,7 @@ def test_generate_absolute_filepaths():
     generate absolute filepath method
     '''
     with pytest.raises(Exception) as e_info:
-        acp.generate_absolute_filepaths(in_path='')
+        isf.generate_absolute_filepaths(in_path='')
         assert e_info is ValueError
 
 
@@ -24,8 +25,8 @@ def test_get_interpolated_effective_areas():
     '''
     This test checks the parsing of the effective area files
     '''
-    effective_area_dict = acp.get_interpolated_effective_areas(
-            acp.__path__[0] + '/resources/test_infolder/'
+    effective_area_dict = isf.get_interpolated_effective_areas(
+            isf.__path__[0] + '/resources/test_infolder/'
         )
 
     # chech that there are 3 (gamma, proton, electron/positron) Aeffs
@@ -42,12 +43,12 @@ def test_get_charged_acceptance_figure():
     '''
     Test to check a drawing method. Should return figure
     '''
-    effective_area_dict = acp.get_interpolated_effective_areas(
-            acp.__path__[0] + '/resources/test_infolder/'
+    effective_area_dict = isf.get_interpolated_effective_areas(
+            isf.__path__[0] + '/resources/test_infolder/'
     )
 
     # start producing plots and data products
-    effective_area_figure = acp.get_charged_acceptance_figure(
+    effective_area_figure = isf.get_charged_acceptance_figure(
         effective_area_dict)
 
     assert isinstance(effective_area_figure, matplotlib.figure.Figure)
@@ -57,12 +58,12 @@ def test_get_gamma_effective_area_figure():
     '''
     Test to check a drawing method. Should return figure
     '''
-    effective_area_dict = acp.get_interpolated_effective_areas(
-            acp.__path__[0] + '/resources/test_infolder/'
+    effective_area_dict = isf.get_interpolated_effective_areas(
+            isf.__path__[0] + '/resources/test_infolder/'
     )
 
     # start producing plots and data products
-    effective_area_figure = acp.get_gamma_effective_area_figure(
+    effective_area_figure = isf.get_gamma_effective_area_figure(
         effective_area_dict)
 
     assert isinstance(effective_area_figure, matplotlib.figure.Figure)
@@ -73,8 +74,8 @@ def test_get_gamma_effective_area_figure():
 #     This test checks if the analysis does
 #     make sense.
 #     '''
-#     result_dict = acp.analysis(
-#         acp.__path__[0] + '/resources/test_infolder/',
+#     result_dict = isf.analysis(
+#         isf.__path__[0] + '/resources/test_infolder/',
 #         is_test=True
 #         )
 
@@ -87,24 +88,24 @@ def test_get_gamma_effective_area_figure():
 #         assert isinstance(
 #             result_dict['data'][data_name], numpy.ndarray
 #             )
-import tempfile
+
 
 
 def test_get_time_to_detections():
     '''
     This test checks if the time to detectin method is working
     '''
-    resource_dict = acp.get_resources_paths()
+    resource_dict = isf.get_resources_paths()
     magic_aeff = gls.get_effective_area(resource_dict['Aeff']['magic'])
     sigma_bg_test = 20./3600.
     alpha_test = 1./5.
 
-    fermi_lat_3fgl_catalog = acp.get_3fgl_catalog(
+    fermi_lat_3fgl_catalog = isf.get_3fgl_catalog(
         resource_dict['fermi_lat']['3fgl']
         )
 
     with tempfile.TemporaryDirectory() as tempfolder:
-        detection_time_list, reduced_catalog = acp.get_time_to_detections(
+        detection_time_list, reduced_catalog = isf.get_time_to_detections(
             fermi_lat_3fgl_catalog,
             a_eff=magic_aeff,
             sigma_bg=sigma_bg_test,
