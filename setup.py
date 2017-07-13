@@ -5,9 +5,9 @@ setup(
     version='0.1.1',
     description='Estimating the Integral Spectral Exclusion Zone of the ACP to calculate time-to-detections in the gamma-ray sky.',
     url='https://github.com/TheBigLebowSky/acp_instrument_sensitivity_function',
-    author='Max Ahnen',
+    author='Max Ludwig Ahnen, Sebastian Achim Mueller',
     author_email='m.knoetig@gmail.com',
-    licence='MIT',
+    licence='GPL v3',
     packages=[
         'acp_instrument_sensitivity_function'
     ],
