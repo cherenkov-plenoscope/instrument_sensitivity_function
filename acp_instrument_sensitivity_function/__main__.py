@@ -28,35 +28,6 @@ import datetime
 from os.path import join
 
 
-def main_logic(arguments, dictionary):
-    # if out path is none, just show the data
-    if arguments['--out'] is None:
-        plt.show()
-    # else save to disk
-    else:
-        for plot_name in dictionary['plots']:
-            dictionary['plots'][plot_name].savefig(
-                join(arguments['--out'], plot_name+'.png'),
-                bbox_inches='tight'
-                )
-            dictionary['plots'][plot_name].savefig(
-                join(arguments['--out'], plot_name+'.pdf'),
-                bbox_inches='tight'
-                )
-        for data_name in dictionary['data']:
-            np.savetxt(
-                join(arguments['--out'], data_name+'.csv'),
-                np.array(dictionary['data'][data_name]),
-                fmt='%.6e',
-                header=(data_name + ', written: ' +
-                        datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                            )
-                        ),
-                delimiter=','
-                )
-
-
 def main():
     '''
     The main.
@@ -75,7 +46,13 @@ def main():
         plot_isez_all=arguments['--plot_isez_all'],
         out_path=arguments['--out']
         )
-    main_logic(arguments, dictionary)
+
+    # if out path is none, just show the data
+    if arguments['--out'] is None:
+        plt.show()
+    # else save to disk
+    else:
+        acp.save_results(path=arguments['--out'], dictionary=dictionary)
 
 
 if __name__ == '__main__':
