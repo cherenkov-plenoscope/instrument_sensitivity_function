@@ -36,7 +36,8 @@ def analysis(
         'gamma': gls.get_effective_area(gamma_collection_area_path),
         'electron_positron': gls.get_effective_area(
             electron_collection_acceptance_path),
-        'proton': gls.get_effective_area(proton_collection_acceptance_path)
+        'proton': gls.get_effective_area(proton_collection_acceptance_path),
+        'figure_size': {'rows': 1920, 'cols': 1920, 'dpi': 200}
     }
     resource_dict = get_resources_paths()
 
@@ -514,9 +515,7 @@ def linestyle(particle):
     return buf_dict[particle]
 
 
-def get_charged_acceptance_figure(
-        effective_area_dict
-        ):
+def get_charged_acceptance_figure(effective_area_dict):
     figure = plt.figure()
 
     for particle in effective_area_dict:
@@ -526,17 +525,17 @@ def get_charged_acceptance_figure(
                 style=linestyle(particle),
                 label=particle,
                 diffuse=True
-                )
+            )
 
     plt.title('Instrument Acceptance')
     plt.legend(loc='best', fontsize=10)
     return figure
 
 
-def get_gamma_effective_area_figure(
-        effective_area_dict
-        ):
-    figure = plt.figure()
+def get_gamma_effective_area_figure(effective_area_dict):
+    figure = plt.figure(
+        figsize=figure_width_height_inches(effective_area_dict['figure_size']))
+    ax =
 
     for particle in effective_area_dict:
         if 'gamma' in particle:
@@ -545,7 +544,7 @@ def get_gamma_effective_area_figure(
                 style=linestyle(particle),
                 label=particle,
                 diffuse=False
-                )
+            )
 
     plt.title('Effective Area')
     plt.legend(loc='best', fontsize=10)
@@ -553,7 +552,11 @@ def get_gamma_effective_area_figure(
 
 
 def plot_effective_area(
-        a_eff_interpol, style='k', label='', diffuse=False):
+    a_eff_interpol,
+    style='k',
+    label='',
+    diffuse=False
+):
     '''
     fill a plot with the effective energy from the supplied
     interpolated data
@@ -566,12 +569,13 @@ def plot_effective_area(
     area_samples = np.array([
         a_eff_interpol(energy)
         for energy
-        in energy_samples
-        ])
+        in energy_samples])
 
-    plt.plot(np.power(10, energy_samples), area_samples/10000.,
-             style,
-             label=label)
+    plt.plot(
+        np.power(10, energy_samples),
+        area_samples/10000.,
+        style,
+        label=label)
 
     plt.loglog()
 
@@ -1227,3 +1231,9 @@ def save_results(path, dictionary):
                     datetime.datetime.now().strftime(
                         "%Y-%m-%d %H:%M:%S")),
             delimiter=',')
+
+
+def figure_width_height_inches(figure_size):
+    width = figure_size['rows']/figure_size['dpi']
+    height = figure_size['cols']/figure_size['dpi']
+    return width, height
