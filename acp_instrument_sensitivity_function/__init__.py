@@ -15,7 +15,7 @@ from pkg_resources import resource_filename
 
 def analysis(
     gamma_collection_area_path,
-    electron_collection_acceptance_path, 
+    electron_collection_acceptance_path,
     proton_collection_acceptance_path,
     rigidity_cutoff_in_tev=10e-3,
     relative_flux_below_cutoff=0.1,
@@ -34,7 +34,8 @@ def analysis(
     '''
     effective_area_dict = {
         'gamma': gls.get_effective_area(gamma_collection_area_path),
-        'electron_positron': gls.get_effective_area(electron_collection_acceptance_path),
+        'electron_positron': gls.get_effective_area(
+            electron_collection_acceptance_path),
         'proton': gls.get_effective_area(proton_collection_acceptance_path)
     }
     resource_dict = get_resources_paths()
@@ -163,35 +164,35 @@ def get_resources_paths():
     resource_paths_dict = {
         'fluxes': {
             'electron_positron': resource_filename(
-                'acp_instrument_sensitivity_function', 
+                'acp_instrument_sensitivity_function',
                 'resources/e_plus_e_minus_spec.dat'
             ),
             'proton': resource_filename(
-                'acp_instrument_sensitivity_function', 
+                'acp_instrument_sensitivity_function',
                 'resources/proton_spec.dat'
             )
         },
         'Aeff': {
             'magic': resource_filename(
-                'acp_instrument_sensitivity_function', 
+                'acp_instrument_sensitivity_function',
                 'resources/MAGIC_lowZd_Aeff.dat'
             )
         },
         'isez': {
             'fermi_lat': resource_filename(
-                'acp_instrument_sensitivity_function', 
+                'acp_instrument_sensitivity_function',
                 'resources/FermiLAT_isez_p8r2_source_v6_10yr_gal_north.txt'
             )
         },
         'crab': {
             'broad_sed': resource_filename(
-                'acp_instrument_sensitivity_function', 
+                'acp_instrument_sensitivity_function',
                 'resources/crab_nebula_sed_fermi_magic.dat'
             )
         },
         'fermi_lat': {
             '3fgl': resource_filename(
-                'acp_instrument_sensitivity_function', 
+                'acp_instrument_sensitivity_function',
                 'resources/FermiLAT_3FGL_gll_psc_v16.fit'
             )
         }
@@ -246,6 +247,7 @@ def get_3fgl_catalog(file_path):
     df['name'] = df.name.str.strip()
 
     return list(df.T.to_dict().values())
+
 
 def get_cosmic_ray_flux_interpol(
         file_path,
@@ -695,6 +697,7 @@ def psf_electromagnetic_in_deg(energy_in_tev):
     '''
     return 0.8*(energy_in_tev*1000.)**(-0.4)
 
+
 def plot_over_energy_log_log(
         function,
         energy_range,
@@ -929,8 +932,8 @@ def get_isez_figure(
         e_0=magic_energy_range[0]*5.,
         n_points_to_plot=n_points_to_plot,
         fmt='b',
-        label='MAGIC %2.1fh'%(t_obs/3600.)
-        )
+        label='MAGIC %2.1fh' % (t_obs/3600.)
+    )
 
     # plot the acp sensitivity
     acp_energy_range = gls.get_energy_range(acp_aeff)
@@ -1047,7 +1050,6 @@ def get_time_to_detections(
     detection_times = []
     gal_lat_cut = 15  # only src with |gal lat| > 15
     total = len(fermi_lat_3fgl_catalog)
-
 
     for i, source in tqdm(enumerate(fermi_lat_3fgl_catalog), total=total):
         # check that it is pl and far off the gal. plane
@@ -1174,7 +1176,10 @@ def get_gamma_spect(fermi_cat, source):
             beta=source_dict['beta']
             )
 
-    elif source_dict['spec_type'] == 'PLExpCutoff' or source_dict['spec_type'] == 'PLSuperExpCutoff':
+    elif (
+        source_dict['spec_type'] == 'PLExpCutoff' or
+        source_dict['spec_type'] == 'PLSuperExpCutoff'
+    ):
         return_func = lambda x: pl_super_exp_cutoff_3fgl(
             10**x,
             f_0=source_dict['f_0'],
