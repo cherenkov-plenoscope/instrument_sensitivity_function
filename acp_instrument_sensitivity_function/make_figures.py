@@ -106,7 +106,7 @@ def get_3fgl_catalog(file_path):
     return list(df.T.to_dict().values())
 
 
-def get_cosmic_ray_flux_interpol(
+def get_cosmic_ray_flux_interpolated(
     path,
     base_energy_in_TeV,
     plot_power_slope,
@@ -561,14 +561,14 @@ fermi_lat_3fgl_catalog = get_3fgl_catalog(
 
 gamma_source_flux = get_gamma_spect(fermi_lat_3fgl_catalog, source=source)
 
-electron_positron_flux = get_cosmic_ray_flux_interpol(
+electron_positron_flux = get_cosmic_ray_flux_interpolated(
     resource_paths['fluxes']['electron_positron'],
     base_energy_in_TeV=1e-3,
     plot_power_slope=3.,
     base_area_in_cm_2=1e4
 )
 
-proton_flux = get_cosmic_ray_flux_interpol(
+proton_flux = get_cosmic_ray_flux_interpolated(
     resource_paths['fluxes']['proton'],
     base_energy_in_TeV=1e-3,
     plot_power_slope=2.7,
