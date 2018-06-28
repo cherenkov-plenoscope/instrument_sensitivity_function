@@ -150,27 +150,20 @@ def get_fermi_lat_integral_spectral_exclusion_zone(path):
         plot_power_slope=2.)
 
 
-def get_crab_spectrum(file_path):
+def get_crab_spectrum(path):
     '''
     This reads in a file containing the Crab nebula SED
 
     Transforms it into an interpolated spectrum,
     in usual coordinates: TeV, cm^2, s
     '''
-    b_energy_x_in_tev = 1e-3  # was given in GeV
-    b_energy_y_in_tev = 1.  # was given in TeV
-    base_area_in_cm_2 = 1.
-    base_time_in_sec = 1.
-    plot_power_slope = 2.
-
     return get_spectrum_from_linear_file(
-        file_path,
-        b_energy_x_in_tev=b_energy_x_in_tev,
-        b_energy_y_in_tev=b_energy_y_in_tev,
-        base_area_in_cm_2=base_area_in_cm_2,
-        base_time_in_sec=base_time_in_sec,
-        plot_power_slope=plot_power_slope
-        )
+        path,
+        b_energy_x_in_tev=1e-3,  # was given in GeV
+        b_energy_y_in_tev=1.,  # was given in TeV
+        base_area_in_cm_2=1.,
+        base_time_in_sec=1.,
+        plot_power_slope=2.)
 
 
 def get_spectrum_from_linear_file(
