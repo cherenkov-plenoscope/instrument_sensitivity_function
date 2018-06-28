@@ -167,7 +167,7 @@ def get_crab_spectrum(path):
 
 
 def get_spectrum_from_linear_file(
-    file_path,
+    path,
     b_energy_x_in_tev=1.,
     b_energy_y_in_tev=1.,
     base_area_in_cm_2=1.,
@@ -175,10 +175,8 @@ def get_spectrum_from_linear_file(
     plot_power_slope=0.
 ):
     '''
-    Method to read any file containing data
-    first column is energy (not logarithmic)
-    and the second column some sort of flux,
-    also linear.
+    Read file, first column is energy (not logarithmic)
+    and the second column some sort of flux, also linear.
     '''
     if plot_power_slope < 0:
         raise ValueError('plot_power_slope is supposed to be positive. ' +
@@ -186,7 +184,7 @@ def get_spectrum_from_linear_file(
                          ' were multiplied'
                          )
 
-    data = np.loadtxt(file_path)
+    data = np.loadtxt(path)
 
     # convert energy axis to energy used on y axis
     data[:, 0] = data[:, 0]*b_energy_x_in_tev
@@ -208,8 +206,7 @@ def get_spectrum_from_linear_file(
         data[:, 0],
         data[:, 1],
         bounds_error=False,
-        fill_value=0.
-    )
+        fill_value=0.)
 
     return data_interpol
 
