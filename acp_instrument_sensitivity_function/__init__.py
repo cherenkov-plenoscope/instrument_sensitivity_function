@@ -535,7 +535,6 @@ def get_charged_acceptance_figure(effective_area_dict):
 def get_gamma_effective_area_figure(effective_area_dict):
     figure = plt.figure(
         figsize=figure_width_height_inches(effective_area_dict['figure_size']))
-    ax =
 
     for particle in effective_area_dict:
         if 'gamma' in particle:
