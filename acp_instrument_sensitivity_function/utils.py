@@ -289,6 +289,9 @@ def power_law_log_parabola_according_to_3fgl(energy, f_0, alpha, e_0, beta):
     return f_0*(energy/e_0)**(+alpha+beta*np.log10(energy/e_0))
 
 
+psf_electromagnetic_containment = 0.67
+
+
 def psf_electromagnetic_in_deg(energy_in_tev):
     '''
     This function returns the half angle / deg of the
