@@ -209,7 +209,7 @@ def get_spectrum_from_linear_file(
     return data_interpol
 
 
-def get_gamma_spect(fermi_cat, source):
+def get_gamma_ray_spectrum_of_source(fermi_cat, source):
     '''
     This function produces a function for
     calculating the spectum of a named source
@@ -559,7 +559,8 @@ resource_paths = get_resources_paths()
 fermi_lat_3fgl_catalog = get_3fgl_catalog(
     resource_paths['fermi_lat']['3fgl'])
 
-gamma_source_flux = get_gamma_spect(fermi_lat_3fgl_catalog, source=source)
+gamma_source_flux = get_gamma_ray_spectrum_of_source(
+    fermi_lat_3fgl_catalog, source=source)
 
 electron_positron_flux = get_cosmic_ray_flux_interpolated(
     resource_paths['fluxes']['electron_positron'],
