@@ -141,19 +141,13 @@ def get_fermi_lat_integral_spectral_exclusion_zone(path):
     Transforms it into an interpolated function,
     in usual coordinates: TeV, cm^2, s
     '''
-    b_energy_x_in_tev = 1e-6  # was given in MeV
-    b_energy_y_in_tev = 0.62415091  # was given in erg
-    base_area_in_cm_2 = 1.
-    base_time_in_sec = 1.
-    plot_power_slope = 2.
-
     return get_spectrum_from_linear_file(
         path,
-        b_energy_x_in_tev=b_energy_x_in_tev,
-        b_energy_y_in_tev=b_energy_y_in_tev,
-        base_area_in_cm_2=base_area_in_cm_2,
-        base_time_in_sec=base_time_in_sec,
-        plot_power_slope=plot_power_slope)
+        b_energy_x_in_tev=1e-6,  # was given in MeV
+        b_energy_y_in_tev=0.62415091,  # was given in erg
+        base_area_in_cm_2=1.,
+        base_time_in_sec=1.,
+        plot_power_slope=2.)
 
 
 def get_crab_spectrum(file_path):
