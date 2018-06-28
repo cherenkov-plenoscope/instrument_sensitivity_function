@@ -373,6 +373,189 @@ def get_interpol_func_scaled(func, gamma_eff):
     return scaled_interpol
 
 
+def lambda_lim(
+    f_0,
+    gamma,
+    e_0,
+    a_eff_interpol,
+    beta,
+    cutoff,
+    exp_index,
+    spec_type
+):
+    '''
+    calculate the expected number of events, given a spectrum
+    '''
+    energy_range = gls.get_energy_range(a_eff_interpol)
+
+    if spec_type == 'PowerLaw':
+        return f_0 * gls.effective_area_averaged_flux(
+            gamma,
+            e_0,
+            a_eff_interpol
+            )
+
+    elif spec_type == 'LogParabola':
+        integrand = lambda x: log_parabola_3fgl(
+            x,
+            f_0=f_0,
+            alpha=gamma,
+            e_0=e_0,
+            beta=beta
+            )*a_eff_interpol(np.log10(x))
+
+    elif spec_type == 'PLExpCutoff' or spec_type == 'PLSuperExpCutoff':
+        integrand = lambda x: pl_super_exp_cutoff_3fgl(
+            x,
+            f_0=f_0,
+            gamma=gamma,
+            e_0=e_0,
+            cutoff=cutoff,
+            exp_index=exp_index
+            )*a_eff_interpol(np.log10(x))
+
+    return integrate.quad(
+        integrand,
+        energy_range[0],
+        energy_range[1],
+        limit=10000,
+        full_output=1,
+        points=[energy_range[0], energy_range[0]*10]
+        )[0]
+
+
+def time_to_detection(
+    f_0,
+    gamma,
+    e_0,
+    a_eff_interpol,
+    sigma_bg,
+    alpha,
+    beta=False,
+    cutoff=False,
+    exp_index=False,
+    spec_type='PowerLaw',
+    threshold=5.
+):
+    '''
+    This function calls gls functions in order to calculate time to detections.
+    spectrum types:
+
+    PowerLaw
+    LogParabola
+    PLExpCutoff / PLSuperExpCutoff
+    '''
+    lambda_lim_val = lambda_lim(
+        f_0=f_0,
+        gamma=gamma,
+        e_0=e_0,
+        a_eff_interpol=a_eff_interpol,
+        beta=beta,
+        cutoff=cutoff,
+        exp_index=exp_index,
+        spec_type=spec_type)
+
+    return gls.t_obs_li_ma_criterion(
+        lambda_lim_val,
+        sigma_bg,
+        alpha,
+        threshold)
+
+
+def get_time_to_detections(
+    fermi_lat_3fgl_catalog,
+    a_eff,
+    sigma_bg,
+    alpha,
+    out_path=None,
+    is_test=False
+):
+    '''
+    This function maps methods for getting time
+    to detections onto the 3FGL and returns a sorted list
+    of times to detection and indices where to find them
+    in the 3fgl
+    '''
+
+    # 'name': source[name_index],
+    # 'ra': source[ra_index],
+    # 'dec': source[dec_index],
+    # 'gal_long': source[gal_long_index],
+    # 'gal_lat': source[gal_lat_index],
+    # 'spec_type': source[spec_type_index],
+    # 'pivot_energy': source[pivot_energy_index]*1e-6,
+    # 'spectral_index': -1*source[spectral_index_index],
+    # 'flux_density': source[flux_density_index]*1e6
+    detection_times = []
+    gal_lat_cut = 15  # only src with |gal lat| > 15
+    total = len(fermi_lat_3fgl_catalog)
+
+    for i, source in tqdm(enumerate(fermi_lat_3fgl_catalog), total=total):
+        # check that it is pl and far off the gal. plane
+        if np.abs(source['gal_lat']) > gal_lat_cut:
+            e_0 = source['pivot_energy']
+            f_0 = source['flux_density']
+            gamma = source['spectral_index']
+            beta = source['beta']
+            cutoff = source['cutoff']
+            exp_index = source['exp_index']
+            time_to_det = acp.time_to_detection(
+                f_0=f_0,
+                gamma=gamma,
+                e_0=e_0,
+                a_eff_interpol=a_eff,
+                sigma_bg=sigma_bg,
+                alpha=alpha,
+                beta=beta,
+                cutoff=cutoff,
+                exp_index=exp_index,
+                spec_type=source['spec_type'],
+                )
+
+            list_buf = [i, time_to_det]
+            detection_times.append(list_buf)
+        if is_test and i > 10:
+            break
+
+    # sort on the times to detection
+    detection_times.sort(key=lambda x: x[1])
+
+    reduced_sorted_catalog = [
+        [
+            fermi_lat_3fgl_catalog[i[0]]['name'],
+            fermi_lat_3fgl_catalog[i[0]]['ra'],
+            fermi_lat_3fgl_catalog[i[0]]['dec'],
+            fermi_lat_3fgl_catalog[i[0]]['gal_long'],
+            fermi_lat_3fgl_catalog[i[0]]['gal_lat'],
+            fermi_lat_3fgl_catalog[i[0]]['spec_type'],
+            fermi_lat_3fgl_catalog[i[0]]['pivot_energy'],
+            fermi_lat_3fgl_catalog[i[0]]['spectral_index'],
+            fermi_lat_3fgl_catalog[i[0]]['flux_density'],
+            i[1]
+        ]
+        for i in detection_times
+        ]
+
+    if out_path is not None:
+        with open(join(out_path, 'time_to_detections.csv'), 'w') as myfile:
+            writer = csv.writer(myfile)
+            myfile.write(
+                '# time_to_detections, written: ' +
+                datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S\n"
+                    )
+                )
+            myfile.write(
+                '# name, ra, dec, gal_long, gal_lat, spec_type, ' +
+                'pivot_energy, spectral_index, flux_density, time_est' +
+                '\n'
+                )
+            for row in reduced_sorted_catalog:
+                writer.writerow(row)
+
+    return detection_times, reduced_sorted_catalog
+
+
 # Collect all resources
 # ---------------------
 
@@ -416,7 +599,7 @@ proton_flux = get_cosmic_ray_flux_interpol(
 # ----
 
 number_points = 40
-dpi=200
+dpi=250
 pixel_rows = 1920
 pixel_columns = 1920
 
@@ -434,7 +617,7 @@ axes.plot(
     gamma_A_cm2/(1e2*1e2),
     linestyle='-',
     color='k',
-    label='gamma')
+    label='gamma-rays')
 axes.loglog()
 axes.legend(loc='best', fontsize=10)
 axes.spines['right'].set_visible(False)
@@ -461,14 +644,14 @@ axes.plot(
     electron_A_cm2_sr/(1e2*1e2),
     linestyle='--',
     color='k',
-    label='electron and positron')
+    label='electrons and positrons')
 
 axes.plot(
     np.power(10, log_E_TeV)*1e3,
     proton_A_cm2_sr/(1e2*1e2),
     linestyle=':',
     color='k',
-    label='proton')
+    label='protons')
 
 axes.loglog()
 axes.legend(loc='best', fontsize=10)
@@ -605,7 +788,7 @@ axes.plot(
     gamma_diff_rate_roi_sTeV/1e3,
     linestyle='-',
     color='k',
-    label='gamma from '+source)
+    label='gamma-rays from '+source)
 
 electron_positron_rate_roi_sTeV = electron_positron_diff_rate_roi(log_E_TeV)
 axes.plot(
@@ -613,7 +796,7 @@ axes.plot(
     electron_positron_rate_roi_sTeV/1e3,
     linestyle='--',
     color='k',
-    label='electron and positron')
+    label='electrons and positrons')
 
 proton_rate_roi_sTeV = proton_diff_rate_roi(log_E_TeV)
 axes.plot(
@@ -621,7 +804,7 @@ axes.plot(
     proton_rate_roi_sTeV/1e3,
     linestyle=':',
     color='k',
-    label='proton')
+    label='protons')
 
 axes.loglog()
 axes.legend(loc='best', fontsize=10)
@@ -655,15 +838,6 @@ acp_aeff_scaled = get_interpol_func_scaled(
 
 
 '''
-resource_dict,
-acp_sigma_bg,
-energy_range,
-acp_aeff,
-acp_alpha=1./3.,
-t_obs=50.*3600.,
-is_test=False,
-plot_isez_all=False
-
 This function shall return a set of isze curves, in a figure and as data
 Furthermore it shall compare everything to te crab nebula emission.
 '''
@@ -725,7 +899,7 @@ axes.plot(
     e_y*1e-3*1e4,
     color='k',
     linestyle='-',
-    label='Fermi-LAT 10y gal. north',)
+    label='Fermi-LAT 10y galactic north',)
 
 # MAGIC
 n_points_to_plot = 21
@@ -738,13 +912,12 @@ magic_energy_x, magic_dn_de_y = gls.plot_sens_spectrum_figure(
     e_0=magic_energy_range[0]*5.,
     n_points_to_plot=n_points_to_plot,
     fmt='b',
-    label='MAGIC %2.1fh' % (t_obs/3600.)
-)
+    label='')
 axes.plot(
     magic_energy_x*1e3,
     magic_dn_de_y*1e-3*1e4,
     'b',
-    label='MAGIC %2.1fh' % (t_obs/3600.))
+    label='MAGIC %2.0fh' % (t_obs/3600.))
 
 
 # ACP
@@ -757,13 +930,12 @@ acp_energy_x, acp_dn_de_y = gls.plot_sens_spectrum_figure(
     e_0=acp_energy_range[0]*5.,
     n_points_to_plot=n_points_to_plot,
     fmt='r',
-    label='ACP %2.1fh' % (t_obs/3600.)
-)
+    label='')
 axes.plot(
     acp_energy_x*1e3,
     acp_dn_de_y*1e-3*1e4,
     'r',
-    label='ACP %2.1fh' % (t_obs/3600.))
+    label='Portal %2.0fh' % (t_obs/3600.))
 
 axes.loglog()
 axes.legend(loc='best', fontsize=10)
@@ -775,3 +947,57 @@ axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
 figure.savefig(
     join(out_dir, 'isez.png'),
     dpi=dpi)
+
+# Times to detection
+# ------------------
+
+sorted_times_to_detection_map, reduced_catalog = get_time_to_detections(
+    fermi_lat_3fgl_catalog,
+    a_eff=gamma_response,
+    sigma_bg=acp_sigma_bg,
+    alpha=acp_alpha,
+    out_path=out_dir)
+
+sorted_t_est_list = np.array(sorted_times_to_detection_map)[:, 1]
+
+figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
+axes = figure.add_subplot(1, 1, 1)
+
+yvals = np.arange(len(sorted_t_est_list))
+axes.step(
+    sorted_t_est_list,
+    yvals,
+    color='k')
+axes.axvline(x=3600*50, color='grey', linestyle=':')
+axes.text(x=3600*50*1.1, y=8e-1, s='50h')
+
+axes.loglog()
+axes.legend(loc='best', fontsize=10)
+axes.spines['right'].set_visible(False)
+axes.spines['top'].set_visible(False)
+axes.set_xlabel('time-to-detection / s')
+axes.set_ylabel('number of sources')
+axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
+figure.savefig(
+    join(out_dir, 'ttd.png'),
+    dpi=dpi)
+
+
+# Time to detection of Gamma-ray-burst GBR-130427A
+
+grb_f0 = 1.e-7
+grb_gamma = -2.
+grb_e0 = 1.
+
+grb_130427A_time_to_detection = acp.time_to_detection(
+    f_0=grb_f0,
+    gamma=grb_gamma,
+    e_0=grb_e0,
+    a_eff_interpol=gamma_response,
+    sigma_bg=acp_sigma_bg,
+    alpha=acp_alpha)
+
+grb_130427A_gamma_rate = grb_f0*gls.effective_area_averaged_flux(
+    gamma=grb_gamma,
+    e_0=grb_e0,
+    a_eff_interpol=gamma_response)
