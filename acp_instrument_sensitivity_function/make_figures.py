@@ -107,30 +107,28 @@ def get_3fgl_catalog(file_path):
 
 
 def get_cosmic_ray_flux_interpol(
-    file_path,
+    path,
     base_energy_in_TeV,
     plot_power_slope,
     base_area_in_cm_2,
     base_time_in_sec=1.
 ):
     '''
-    Function to get the interpolated cr fluxes
-    from a file path
+    Get the interpolated cosmic-ray fluxes from a file in path.
 
     my own units are: log10(E/TeV), sec, sr, cm^2.
-    AMS02 flues are usually given in E/GeV, m^2, sec, sr
+    AMS02 fluxes are usually given in E/GeV, m^2, sec, sr
     '''
     b_energy_x_in_tev = base_energy_in_TeV
     b_energy_y_in_tev = base_energy_in_TeV
 
     return get_spectrum_from_linear_file(
-        file_path,
+        path,
         b_energy_x_in_tev=b_energy_x_in_tev,
         b_energy_y_in_tev=b_energy_y_in_tev,
         base_area_in_cm_2=base_area_in_cm_2,
         base_time_in_sec=base_time_in_sec,
-        plot_power_slope=plot_power_slope
-        )
+        plot_power_slope=plot_power_slope)
 
 
 def get_fermi_lat_integral_spectral_exclusion_zone(path):
