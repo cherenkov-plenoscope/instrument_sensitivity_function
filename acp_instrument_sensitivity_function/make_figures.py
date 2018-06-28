@@ -107,12 +107,12 @@ def get_3fgl_catalog(file_path):
 
 
 def get_cosmic_ray_flux_interpol(
-        file_path,
-        base_energy_in_TeV,
-        plot_power_slope,
-        base_area_in_cm_2,
-        base_time_in_sec=1.
-        ):
+    file_path,
+    base_energy_in_TeV,
+    plot_power_slope,
+    base_area_in_cm_2,
+    base_time_in_sec=1.
+):
     '''
     Function to get the interpolated cr fluxes
     from a file path
@@ -133,7 +133,7 @@ def get_cosmic_ray_flux_interpol(
         )
 
 
-def get_fermi_lat_isez(file_path):
+def get_fermi_lat_integral_spectral_exclusion_zone(path):
     '''
     This reads in a file containing the isez from
     FermiLAT (they call it broadband sensitivity)
@@ -148,13 +148,12 @@ def get_fermi_lat_isez(file_path):
     plot_power_slope = 2.
 
     return get_spectrum_from_linear_file(
-        file_path,
+        path,
         b_energy_x_in_tev=b_energy_x_in_tev,
         b_energy_y_in_tev=b_energy_y_in_tev,
         base_area_in_cm_2=base_area_in_cm_2,
         base_time_in_sec=base_time_in_sec,
-        plot_power_slope=plot_power_slope
-        )
+        plot_power_slope=plot_power_slope)
 
 
 def get_crab_spectrum(file_path):
@@ -855,7 +854,8 @@ n_points_to_plot = 21
 magic_energy_range = gls.get_energy_range(magic_aeff)
 t_obs=50.*3600.
 
-fermi_lat_isez = acp.get_fermi_lat_isez(resource_paths['isez']['fermi_lat'])
+fermi_lat_isez = get_fermi_lat_integral_spectral_exclusion_zone(
+    resource_paths['isez']['fermi_lat'])
 
 
 
