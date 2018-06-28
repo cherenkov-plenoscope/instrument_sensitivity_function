@@ -566,7 +566,7 @@ source = '3FGL J2254.0+1608'
 out_dir = 'run/isf'
 fov_in_deg = 6.5
 rigidity_cutoff_in_TeV=10e-3
-gamma_eff = 0.67
+psf_containment = 0.67
 relative_flux_below_cutoff=0.05
 
 gamma_response = gls.get_effective_area(gamma_response_path)
@@ -607,7 +607,11 @@ pixel_columns = 1920
 # Effective-Area gamma-rays
 # -------------------------
 figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-axes = figure.add_subplot(1, 1, 1)
+lmar = 0.1
+bmar = 0.06
+tmar = 0.02
+rmar = 0.02
+axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
 log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
 gamma_A_cm2 = gamma_response(log_E_TeV)
@@ -626,14 +630,14 @@ axes.set_xlabel('Energy / GeV')
 axes.set_ylabel('Area / m$^2$')
 axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
 figure.savefig(
-    join(out_dir, 'gamma.png'),
+    join(out_dir, 'response_to_gamma_rays.png'),
     dpi=dpi)
 
 
 # Effective-Acceptance charged particles
 # --------------------------------------
 figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-axes = figure.add_subplot(1, 1, 1)
+axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
 log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
 electron_A_cm2_sr = electron_response(log_E_TeV)
@@ -661,7 +665,7 @@ axes.set_xlabel('Energy / GeV')
 axes.set_ylabel('Acceptance / (m$^2$ sr)')
 axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
 figure.savefig(
-    join(out_dir, 'charged.png'),
+    join(out_dir, 'response_to_charged_particles.png'),
     dpi=dpi)
 
 
@@ -672,12 +676,12 @@ energy_range = [0.0001, 1]
 # Gamma
 
 gamma_diff_rate_roi = lambda energy: (
-    gamma_source_flux(energy) * gamma_response(energy) * gamma_eff)
+    gamma_source_flux(energy) * gamma_response(energy) * psf_containment)
 
 gamma_integrand_roi = lambda energy: (
     gamma_source_flux(np.log10(energy)) *
     gamma_response(np.log10(energy)) *
-    gamma_eff)
+    psf_containment)
 
 points_to_watch_out = [energy_range[0], energy_range[0]*10]
 gamma_rate_roi = scipy.integrate.quad(
@@ -778,7 +782,7 @@ proton_rate_roi = scipy.integrate.quad(
 # Figure
 
 figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-axes = figure.add_subplot(1, 1, 1)
+axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
 log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
 
@@ -814,7 +818,7 @@ axes.set_xlabel('Energy / GeV')
 axes.set_ylabel('Rates / (s GeV)$^{-1}$')
 axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
 figure.savefig(
-    join(out_dir, 'rates.png'),
+    join(out_dir, 'expected_trigger_rates.png'),
     dpi=dpi)
 
 
@@ -834,7 +838,7 @@ energy_range = [0.1e-3, 10.]  # in TeV
 # get efficiency scaled acp aeff
 acp_aeff_scaled = get_interpol_func_scaled(
     gamma_response,
-    gamma_eff=gamma_eff)
+    gamma_eff=psf_containment)
 
 
 '''
@@ -856,7 +860,7 @@ fermi_lat_isez = acp.get_fermi_lat_isez(resource_paths['isez']['fermi_lat'])
 
 
 figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-axes = figure.add_subplot(1, 1, 1)
+axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
 log_resolution=0.05
 
@@ -942,10 +946,10 @@ axes.legend(loc='best', fontsize=10)
 axes.spines['right'].set_visible(False)
 axes.spines['top'].set_visible(False)
 axes.set_xlabel('Energy / GeV')
-axes.set_ylabel('dN/dE / (m$^2$ s GeV)$^{-1}$')
+axes.set_ylabel('d Flux / d Energy / (m$^2$ s GeV)$^{-1}$')
 axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
 figure.savefig(
-    join(out_dir, 'isez.png'),
+    join(out_dir, 'integral_spectral_exclusion_zone.png'),
     dpi=dpi)
 
 # Times to detection
@@ -961,7 +965,7 @@ sorted_times_to_detection_map, reduced_catalog = get_time_to_detections(
 sorted_t_est_list = np.array(sorted_times_to_detection_map)[:, 1]
 
 figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-axes = figure.add_subplot(1, 1, 1)
+axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
 yvals = np.arange(len(sorted_t_est_list))
 axes.step(
@@ -979,7 +983,7 @@ axes.set_xlabel('time-to-detection / s')
 axes.set_ylabel('number of sources')
 axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
 figure.savefig(
-    join(out_dir, 'ttd.png'),
+    join(out_dir, 'times_to_detection.png'),
     dpi=dpi)
 
 
