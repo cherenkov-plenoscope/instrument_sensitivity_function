@@ -5,7 +5,6 @@ import scipy
 import acp_instrument_sensitivity_function as isf
 import gamma_limits_sensitivity as gls
 
-
 def analysis(
     gamma_collection_area_path='run/irf/gamma/results/irf.csv',
     electron_collection_acceptance_path='run/irf/electron/results/irf.csv',
@@ -13,7 +12,7 @@ def analysis(
     source_name='3FGL J2254.0+1608',
     out_dir='run/isf',
     fov_in_deg=6.5,
-    rigidity_cutoff_in_tev=10e-3,
+    rigidity_cutoff_in_tev=10*1e-3,
     relative_flux_below_cutoff=0.05,
     number_points=40,
     dpi=250,
@@ -274,6 +273,45 @@ def analysis(
     figure.savefig(
         join(out_dir, 'expected_trigger_rates.png'),
         dpi=dpi)
+
+
+    # Fluxes of cosmic particles
+    # --------------------------
+    figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
+    axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
+
+    log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
+
+    E = 10**log_E_TeV # TeV
+    F_ep = electron_positron_flux_cutoff(log_E_TeV) # [cm**2 sr s TeV]**(-1)
+
+    axes.plot(
+        E*1e3,
+        F_ep*1e-3*1e4,
+        linestyle='--',
+        color='k',
+        label='electrons and positrons')
+
+    F_p = proton_flux_cutoff(log_E_TeV) # [cm**2 sr s TeV]**(-1)
+
+    axes.plot(
+        E*1e3,
+        F_p*1e-3*1e4,
+        linestyle=':',
+        color='k',
+        label='protons')
+
+    axes.loglog()
+    axes.legend(loc='best', fontsize=10)
+    axes.spines['right'].set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.set_xlabel('Energy / GeV')
+    axes.set_ylabel('Flux / (m$^2$ s sr GeV)$^{-1}$')
+    axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
+    figure.savefig(
+        join(out_dir, 'cosmic_particle_fluxes.png'),
+        dpi=dpi)
+
 
     # Integral-Spectral-Exclusion-Zone
     # --------------------------------
