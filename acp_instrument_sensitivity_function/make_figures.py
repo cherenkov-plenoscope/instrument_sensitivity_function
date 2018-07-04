@@ -52,8 +52,126 @@ def analysis(
         plot_power_slope=2.7,
         base_area_in_cm_2=1e4)
 
-    # plot
-    # ----
+    # Assumed-angular-resolution
+    # --------------------------
+
+    # @article{hofmann2006performance,
+    #   title={Performance limits for Cherenkov instruments},
+    #   author={Hofmann, Werner},
+    #   journal={arXiv preprint astro-ph/0603076},
+    #   year={2006}
+    # }
+
+    hoffmann_E_vs_res = np.array([  # GeV and deg
+        # [9749.2, 0.002188],
+        [966.70, 0.005758],
+        [95.855, 0.019627],
+        [29.055, 0.043256],
+        [9.7492, 0.113806],
+    ])
+
+    hoffmann_E_vs_res_with_magnetic_field = np.array([  # GeV and deg
+        # [9749.2, 0.002188],
+        [991.57, 0.007771],
+        [98.321, 0.030353],
+        [29.803, 0.073590],
+    ])
+
+    # @article{fermi2010fermi,
+    #   title={Fermi gamma-ray imaging of a radio galaxy},
+    #   author={Fermi-LAT Collaboration and others},
+    #   journal={Science},
+    #   volume={328},
+    #   number={5979},
+    #   pages={725--729},
+    #   year={2010},
+    #   publisher={American Association for the Advancement of Science}
+    # }
+
+    def fermi_resolution_deg(Energy_TeV):
+        return 0.8 * (Energy_TeV*1e3)**(-0.8)
+
+
+    figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
+    axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
+
+    E_TeV_to_10 = np.linspace(1e-4, 1e-2, number_points)
+
+    axes.plot(
+        E_TeV_to_10*1e3,
+        fermi_resolution_deg(E_TeV_to_10),
+        'k-.',
+        label='Fermi-LAT')
+
+    E_TeV_1G = np.linspace(0.001, 1, number_points)
+    res_1G = isf.utils.psf_electromagnetic_in_deg(E_TeV_1G)
+    axes.plot(
+        E_TeV_1G*1e3,
+        res_1G,
+        linestyle='-',
+        color='k',
+        label='Aharonoan et al., 5@5')
+
+    axes.plot(
+        hoffmann_E_vs_res[:, 0],
+        hoffmann_E_vs_res[:, 1],
+        'ko--',
+        markerfacecolor='k',
+        label='Hofmann, limits')
+
+    axes.plot(
+        hoffmann_E_vs_res_with_magnetic_field[:, 0],
+        hoffmann_E_vs_res_with_magnetic_field[:, 1],
+        'ko:',
+        markerfacecolor='white',
+        label='Hofmann, limits, with earth-magnetic-field')
+
+    axes.loglog()
+    axes.legend(loc='best', fontsize=10)
+    axes.spines['right'].set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.set_xlabel('Energy / GeV')
+    axes.set_ylabel('Resolution / deg')
+    axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
+    figure.savefig(
+        join(out_dir, 'assumed_angular_resolution.png'),
+        dpi=dpi)
+
+    # Effective-Acceptance charged particles
+    # --------------------------------------
+    figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
+    axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
+
+    log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
+    electron_A_cm2_sr = electron_response(log_E_TeV)
+    proton_A_cm2_sr = proton_response(log_E_TeV)
+
+    axes.plot(
+        np.power(10, log_E_TeV)*1e3,
+        electron_A_cm2_sr/(1e2*1e2),
+        linestyle='--',
+        color='k',
+        label='electrons and positrons')
+
+    axes.plot(
+        np.power(10, log_E_TeV)*1e3,
+        proton_A_cm2_sr/(1e2*1e2),
+        linestyle=':',
+        color='k',
+        label='protons')
+
+    axes.loglog()
+    axes.legend(loc='best', fontsize=10)
+    axes.spines['right'].set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.set_xlabel('Energy / GeV')
+    axes.set_ylabel('Acceptance / (m$^2$ sr)')
+    axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
+    figure.savefig(
+        join(out_dir, 'response_to_charged_particles.png'),
+        dpi=dpi)
+
+
 
     # Effective-Area gamma-rays
     # -------------------------
