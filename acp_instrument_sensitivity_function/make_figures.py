@@ -110,7 +110,7 @@ def analysis(
         res_1G,
         linestyle='-',
         color='k',
-        label='Aharonoan et al., 5@5')
+        label='Aharonian et al., 5@5')
 
     axes.plot(
         hoffmann_E_vs_res[:, 0],
