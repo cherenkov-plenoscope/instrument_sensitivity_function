@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import scipy
 import acp_instrument_sensitivity_function as isf
 import gamma_limits_sensitivity as gls
+import json
+
 
 def analysis(
     gamma_collection_area_path='run/irf/gamma/results/irf.csv',
@@ -91,37 +93,55 @@ def analysis(
     def fermi_resolution_deg(Energy_TeV):
         return 0.8 * (Energy_TeV*1e3)**(-0.8)
 
+    E_TeV_to_10 = np.linspace(1e-4, 1e-2, number_points)
+    E_TeV_1G = np.linspace(0.001, 1, number_points)
+
+    out = {
+        'Hofman_limits': {
+            'energy_GeV': hoffmann_E_vs_res[:, 0].tolist(),
+            'resolution_deg': hoffmann_E_vs_res[:, 1].tolist()},
+        'Hofman_limits_with_earth_magnetic_field': {
+            'energy_GeV': hoffmann_E_vs_res_with_magnetic_field[:, 0].tolist(),
+            'resolution_deg':
+                hoffmann_E_vs_res_with_magnetic_field[:, 1].tolist()},
+        'Fermi_LAT': {
+            'energy_GeV': (E_TeV_to_10*1e3).tolist(),
+            'resolution_deg': fermi_resolution_deg(E_TeV_to_10).tolist()},
+        'Aharonian_et_al_5at5': {
+            'energy_GeV': (E_TeV_1G*1e3).tolist(),
+            'resolution_deg':
+                isf.utils.psf_electromagnetic_in_deg(E_TeV_1G).tolist()},
+    }
+
+    with open(join(out_dir, 'assumed_angular_resolution.json'), 'wt') as fout:
+        fout.write(json.dumps(out))
 
     figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
     axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
-    E_TeV_to_10 = np.linspace(1e-4, 1e-2, number_points)
-
     axes.plot(
-        E_TeV_to_10*1e3,
-        fermi_resolution_deg(E_TeV_to_10),
+        out['Fermi_LAT']['energy_GeV'],
+        out['Fermi_LAT']['resolution_deg'],
         'k-.',
         label='Fermi-LAT')
 
-    E_TeV_1G = np.linspace(0.001, 1, number_points)
-    res_1G = isf.utils.psf_electromagnetic_in_deg(E_TeV_1G)
     axes.plot(
-        E_TeV_1G*1e3,
-        res_1G,
+        out['Aharonian_et_al_5at5']['energy_GeV'],
+        out['Aharonian_et_al_5at5']['resolution_deg'],
         linestyle='-',
         color='k',
         label='Aharonian et al., 5@5')
 
     axes.plot(
-        hoffmann_E_vs_res[:, 0],
-        hoffmann_E_vs_res[:, 1],
+        out['Hofman_limits']['energy_GeV'],
+        out['Hofman_limits']['resolution_deg'],
         'ko--',
         markerfacecolor='k',
         label='Hofmann, limits')
 
     axes.plot(
-        hoffmann_E_vs_res_with_magnetic_field[:, 0],
-        hoffmann_E_vs_res_with_magnetic_field[:, 1],
+        out['Hofman_limits_with_earth_magnetic_field']['energy_GeV'],
+        out['Hofman_limits_with_earth_magnetic_field']['resolution_deg'],
         'ko:',
         markerfacecolor='white',
         label='Hofmann, limits, with earth-magnetic-field')
@@ -170,8 +190,6 @@ def analysis(
     figure.savefig(
         join(out_dir, 'response_to_charged_particles.png'),
         dpi=dpi)
-
-
 
     # Effective-Area gamma-rays
     # -------------------------
@@ -392,7 +410,6 @@ def analysis(
         join(out_dir, 'expected_trigger_rates.png'),
         dpi=dpi)
 
-
     # Fluxes of cosmic particles
     # --------------------------
     figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
@@ -400,8 +417,8 @@ def analysis(
 
     log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
 
-    E = 10**log_E_TeV # TeV
-    F_ep = electron_positron_flux_cutoff(log_E_TeV) # [cm**2 sr s TeV]**(-1)
+    E = 10**log_E_TeV  # TeV
+    F_ep = electron_positron_flux_cutoff(log_E_TeV)  # [cm**2 sr s TeV]**(-1)
 
     axes.plot(
         E*1e3,
@@ -410,7 +427,7 @@ def analysis(
         color='k',
         label='electrons and positrons')
 
-    F_p = proton_flux_cutoff(log_E_TeV) # [cm**2 sr s TeV]**(-1)
+    F_p = proton_flux_cutoff(log_E_TeV)  # [cm**2 sr s TeV]**(-1)
 
     axes.plot(
         E*1e3,
@@ -430,10 +447,8 @@ def analysis(
         join(out_dir, 'cosmic_particle_fluxes.png'),
         dpi=dpi)
 
-
     # Integral-Spectral-Exclusion-Zone
     # --------------------------------
-
     # get the integral bg rate in on-region (roi)
     acp_sigma_bg = electron_positron_rate_roi + proton_rate_roi
     acp_alpha = 1./3.
@@ -466,7 +481,6 @@ def analysis(
     log_resolution = 0.05
 
     # Crab reference fluxes
-
     for i in range(4):
         scale_factor = np.power(10., (-1)*i),
         log_resolution = 0.2
@@ -488,7 +502,6 @@ def analysis(
             alpha=1./(1.+i))
 
     # Fermi-LAT
-
     log_resolution = 0.05
 
     e_x = 10**np.arange(
@@ -553,7 +566,6 @@ def analysis(
 
     # Times to detection
     # ------------------
-
     sorted_times_to_detection, reduced_catalog = (
         isf.utils.get_time_to_detections(
             fermi_lat_3fgl_catalog,
@@ -588,7 +600,6 @@ def analysis(
 
     # Time to detection of Gamma-ray-burst GBR-130427A
     # ------------------------------------------------
-
     grb_f0 = 1.e-7
     grb_gamma = -2.
     grb_e0 = 1.
