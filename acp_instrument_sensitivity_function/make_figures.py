@@ -111,6 +111,11 @@ def analysis(
             'energy_GeV': (E_TeV_1G*1e3).tolist(),
             'resolution_deg':
                 isf.utils.psf_electromagnetic_in_deg(E_TeV_1G).tolist()},
+        'Possible_benefits_with_Portal_and_5at5': {
+            'energy_GeV': (E_TeV_1G*1e3).tolist(),
+            'resolution_deg':
+                isf.utils.psf_electromagnetic_low_energy_acp_in_deg(
+                    E_TeV_1G).tolist()},
     }
 
     with open(join(out_dir, 'assumed_angular_resolution.json'), 'wt') as fout:
@@ -185,7 +190,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Acceptance / (m$^2$ sr)')
+    axes.set_ylabel('Acceptance / m$^2$ sr')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'response_to_charged_particles.png'),
@@ -244,7 +249,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Acceptance / (m$^2$ sr)')
+    axes.set_ylabel('Acceptance / m$^{-2}$ sr$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'response_to_charged_particles.png'),
@@ -294,7 +299,7 @@ def analysis(
     def solid_angle_ratio(energy):
         return (
             isf.utils.solid_angle_of_cone(
-                isf.utils.psf_electromagnetic_in_deg(energy)) /
+                isf.utils.psf_electromagnetic_low_energy_acp_in_deg(energy)) /
             isf.utils.solid_angle_of_cone(fov_in_deg/2.))
 
     def electron_positron_diff_rate_roi(energy):
@@ -368,6 +373,15 @@ def analysis(
         )[0]
 
     # Figure
+    with open(join(out_dir, 'expected_trigger_rates.json'), 'wt') as fout:
+        fout.write(json.dumps(
+            {
+                'gamma_rate_roi': gamma_rate_roi,
+                'electron_positron_rate_roi': electron_positron_rate_roi,
+                'proton_rate_roi': proton_rate_roi,
+            }
+        ))
+
 
     figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
     axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
@@ -404,7 +418,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Rates / (s GeV)$^{-1}$')
+    axes.set_ylabel('differential Rate / s$^{-1}$ GeV$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'expected_trigger_rates.png'),
@@ -441,7 +455,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Flux / (m$^2$ s sr GeV)$^{-1}$')
+    axes.set_ylabel('Flux / m$^{-2}$ s$^{-1}$ sr$^{-1}$ GeV$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'cosmic_particle_fluxes.png'),
@@ -582,7 +596,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('d Flux / d Energy / (m$^2$ s GeV)$^{-1}$')
+    axes.set_ylabel('differential Flux / m$^{-2}$ s$^{-1}$ GeV$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'integral_spectral_exclusion_zone.png'),

@@ -319,12 +319,24 @@ def psf_electromagnetic_in_deg(energy_in_tev):
 
 
 def psf_electromagnetic_low_energy_acp_in_deg(energy_in_tev):
+    if type(energy_in_tev) is np.ndarray:
+        out = np.zeros_like(energy_in_tev)
+        for i in range(energy_in_tev.shape[0]):
+            out[i] = psf_electromagnetic_low_energy_acp_in_deg_float(
+                energy_in_tev[i])
+        return out
+    else:
+        return psf_electromagnetic_low_energy_acp_in_deg_float(energy_in_tev)
+
+
+def psf_electromagnetic_low_energy_acp_in_deg_float(energy_in_tev):
     """
     The angular resolution for low energy gamma-rays as it was found in the
     early (first) studies for the 71m Portal-ACP.
 
     For energies above 2.5GeV, we use the psf estimated for 5@5, for energies
     below 2.5GeV we use the psf found in simulations on the ACP.
+    """
     """
     energy_bin_centers = 1e-3*np.array([
         0.9,
@@ -337,16 +349,15 @@ def psf_electromagnetic_low_energy_acp_in_deg(energy_in_tev):
         0.3778997256173609,
         0.48665502619107004])
 
-    out = np.zeros(energy_in_tev.shape[0])
-    for i in range(energy_in_tev.shape[0]):
-        if energy_in_tev[i] > 0.0025:
-            out[i] = psf_electromagnetic_in_deg(energy_in_tev[i])
-        else:
-            out[i] = np.interp(
-                x=energy_in_tev[i],
-                xp=energy_bin_centers,
-                fp=one_sigma_resolutions)
-    return out
+    if energy_in_tev > 0.0025:
+        return psf_electromagnetic_in_deg(energy_in_tev)
+    else:
+        return np.interp(
+            x=energy_in_tev,
+            xp=energy_bin_centers,
+            fp=one_sigma_resolutions)
+    """
+    return 0.34297829882763775
 
 
 def solid_angle_of_cone(apex_angle_in_deg):
