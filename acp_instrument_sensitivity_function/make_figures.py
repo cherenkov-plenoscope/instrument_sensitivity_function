@@ -472,6 +472,12 @@ def analysis(
     magic_energy_range = gls.get_energy_range(magic_aeff)
     t_obs = 50.*3600.
 
+    # get CTA-south sensitivity parameters
+    cta_south_aeff = gls.get_effective_area(resource_paths['Aeff']['cta-south'])
+    cta_south_sigma_bg = 0.1017 # bg per second in the on region
+    cta_south_alpha = 0.2  # five off regions
+    cta_south_energy_range = gls.get_energy_range(cta_south_aeff)
+
     fermi_lat_isez = isf.utils.get_fermi_lat_integral_spectral_exclusion_zone(
         resource_paths['isez']['fermi_lat'])
 
@@ -535,6 +541,24 @@ def analysis(
         magic_dn_de_y*1e-3*1e4,
         'b',
         label='MAGIC %2.0fh' % (t_obs/3600.))
+
+    # CTA-south
+    n_points_to_plot = 21
+    waste_figure = plt.figure()
+    cta_south_energy_x, cta_south_dn_de_y = gls.plot_sens_spectrum_figure(
+        sigma_bg=cta_south_sigma_bg,
+        alpha=cta_south_alpha,
+        t_obs=t_obs,
+        a_eff_interpol=cta_south_aeff,
+        e_0=cta_south_energy_range[0]*5.,
+        n_points_to_plot=n_points_to_plot,
+        fmt='g',
+        label='')
+    axes.plot(
+        cta_south_energy_x*1e3,
+        cta_south_dn_de_y*1e-3*1e4,
+        'g',
+        label='CTA-south %2.0fh' % (t_obs/3600.))
 
     # ACP
     acp_energy_range = gls.get_energy_range(acp_aeff_scaled)
