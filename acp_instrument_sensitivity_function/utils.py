@@ -29,6 +29,10 @@ def get_resources_paths():
             'magic': resource_filename(
                 'acp_instrument_sensitivity_function',
                 'resources/MAGIC_lowZd_Aeff.dat'
+            ),
+            'cta-south': resource_filename(
+                'acp_instrument_sensitivity_function',
+                'resources/cta_south_aeff_50h.dat'
             )
         },
         'isez': {
@@ -312,6 +316,37 @@ def psf_electromagnetic_in_deg(energy_in_tev):
         Year = {2001}}
     '''
     return 0.8*(energy_in_tev*1000.)**(-0.4)
+
+
+def psf_electromagnetic_low_energy_acp_in_deg(energy_in_tev):
+    """
+    The angular resolution for low energy gamma-rays as it was found in the
+    early (first) studies for the 71m Portal-ACP.
+
+    For energies above 2.5GeV, we use the psf estimated for 5@5, for energies
+    below 2.5GeV we use the psf found in simulations on the ACP.
+    """
+    energy_bin_centers = 1e-3*np.array([
+        0.9,
+        1.26,
+        1.764,
+        2.4696])
+    one_sigma_resolutions = np.array([
+        0.34297829882763775,
+        0.34597156398104262,
+        0.3778997256173609,
+        0.48665502619107004])
+
+    out = np.zeros(energy_in_tev.shape[0])
+    for i in range(energy_in_tev.shape[0]):
+        if energy_in_tev[i] > 0.0025:
+            out[i] = psf_electromagnetic_in_deg(energy_in_tev[i])
+        else:
+            out[i] = np.interp(
+                x=energy_in_tev[i],
+                xp=energy_bin_centers,
+                fp=one_sigma_resolutions)
+    return out
 
 
 def solid_angle_of_cone(apex_angle_in_deg):
