@@ -461,6 +461,8 @@ def analysis(
         join(out_dir, 'cosmic_particle_fluxes.png'),
         dpi=dpi)
 
+    n_points_to_plot = 11
+
     # Integral-Spectral-Exclusion-Zone
     # --------------------------------
     # get the integral bg rate in on-region (roi)
