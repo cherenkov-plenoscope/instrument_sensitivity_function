@@ -467,7 +467,7 @@ def analysis(
     # --------------------------------
     # get the integral bg rate in on-region (roi)
     acp_sigma_bg = electron_positron_rate_roi + proton_rate_roi
-    acp_alpha = 1./3.
+    acp_alpha = 1./5.
 
     # make a coparison of the Fermi-LAT, MAGIC,
     # and ACP integral spectral exclusion zone
