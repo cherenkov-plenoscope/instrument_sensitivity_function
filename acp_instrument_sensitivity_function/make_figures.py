@@ -591,10 +591,10 @@ def analysis(
         'r',
         label='Portal {:2.0f}h'.format(t_obs/3600.))
 
-    # ACP gamma-hadron 90%
+    # ACP with 99% hadron rejection
     waste_figure = plt.figure()
     acp_energy_range = gls.get_energy_range(acp_aeff_scaled)
-    acp_energy_x, acp_dn_de_y_90 = gls.plot_sens_spectrum_figure(
+    acp_energy_x, acp_dn_de_y_99 = gls.plot_sens_spectrum_figure(
         sigma_bg=electron_positron_rate_roi + 0.01*proton_rate_roi,
         alpha=acp_alpha,
         t_obs=t_obs,
@@ -605,10 +605,10 @@ def analysis(
         label='')
     axes.fill_between(
         x=acp_energy_x*1e3,
-        y1=acp_dn_de_y_90*1e-3*1e4,
+        y1=acp_dn_de_y_99*1e-3*1e4,
         y2=acp_dn_de_y*1e-3*1e4,
         facecolor='red',
-        alpha=0.2,
+        alpha=0.3,
         label='Portal {:2.0f}h, rejecting protons'.format(t_obs/3600.))
 
     axes.set_xlim([1e-1, 1e4])
