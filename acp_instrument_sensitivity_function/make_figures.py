@@ -589,7 +589,7 @@ def analysis(
         acp_energy_x*1e3,
         acp_dn_de_y*1e-3*1e4,
         'r',
-        label='Portal %2.0fh' % (t_obs/3600.))
+        label='Portal {:2.0f}h'.format(t_obs/3600.))
 
     # ACP gamma-hadron 90%
     waste_figure = plt.figure()
