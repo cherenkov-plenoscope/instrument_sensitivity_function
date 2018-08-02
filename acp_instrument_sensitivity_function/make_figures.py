@@ -484,7 +484,6 @@ def analysis(
     magic_aeff = gls.get_effective_area(resource_paths['Aeff']['magic'])
     magic_sigma_bg = 0.0020472222222222224  # bg per second in the on region
     magic_alpha = 0.2  # five off regions
-    n_points_to_plot = 21
     magic_energy_range = gls.get_energy_range(magic_aeff)
     t_obs = 50.*3600.
 
@@ -541,7 +540,6 @@ def analysis(
         label='Fermi-LAT 10y galactic north',)
 
     # MAGIC
-    n_points_to_plot = 21
     waste_figure = plt.figure()
     magic_energy_x, magic_dn_de_y = gls.plot_sens_spectrum_figure(
         sigma_bg=magic_sigma_bg,
@@ -559,7 +557,6 @@ def analysis(
         label='MAGIC %2.0fh' % (t_obs/3600.))
 
     # CTA-south
-    n_points_to_plot = 21
     waste_figure = plt.figure()
     cta_south_energy_x, cta_south_dn_de_y = gls.plot_sens_spectrum_figure(
         sigma_bg=cta_south_sigma_bg,
