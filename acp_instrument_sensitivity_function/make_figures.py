@@ -554,7 +554,7 @@ def analysis(
         magic_energy_x*1e3,
         magic_dn_de_y*1e-3*1e4,
         'b',
-        label='MAGIC %2.0fh' % (t_obs/3600.))
+        label='MAGIC {:2.0f}h'.format(t_obs/3600.))
 
     # CTA-south
     waste_figure = plt.figure()
@@ -571,7 +571,7 @@ def analysis(
         cta_south_energy_x*1e3,
         cta_south_dn_de_y*1e-3*1e4,
         'g',
-        label='CTA-south %2.0fh' % (t_obs/3600.))
+        label='CTA-south {:2.0f}h'.format(t_obs/3600.))
 
     # ACP
     acp_energy_range = gls.get_energy_range(acp_aeff_scaled)
