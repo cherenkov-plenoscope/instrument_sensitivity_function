@@ -574,6 +574,7 @@ def analysis(
         label='CTA-south {:2.0f}h'.format(t_obs/3600.))
 
     # ACP
+    waste_figure = plt.figure()
     acp_energy_range = gls.get_energy_range(acp_aeff_scaled)
     acp_energy_x, acp_dn_de_y = gls.plot_sens_spectrum_figure(
         sigma_bg=acp_sigma_bg,
@@ -590,6 +591,27 @@ def analysis(
         'r',
         label='Portal %2.0fh' % (t_obs/3600.))
 
+    # ACP gamma-hadron 90%
+    waste_figure = plt.figure()
+    acp_energy_range = gls.get_energy_range(acp_aeff_scaled)
+    acp_energy_x, acp_dn_de_y_90 = gls.plot_sens_spectrum_figure(
+        sigma_bg=electron_positron_rate_roi + 0.01*proton_rate_roi,
+        alpha=acp_alpha,
+        t_obs=t_obs,
+        a_eff_interpol=acp_aeff_scaled,
+        e_0=acp_energy_range[0]*5.,
+        n_points_to_plot=n_points_to_plot,
+        fmt='m',
+        label='')
+    axes.fill_between(
+        x=acp_energy_x*1e3,
+        y1=acp_dn_de_y_90*1e-3*1e4,
+        y2=acp_dn_de_y*1e-3*1e4,
+        facecolor='red',
+        alpha=0.2,
+        label='Portal {:2.0f}h, rejecting protons'.format(t_obs/3600.))
+
+    axes.set_xlim([1e-1, 1e4])
     axes.loglog()
     axes.legend(loc='best', fontsize=10)
     axes.spines['right'].set_visible(False)
