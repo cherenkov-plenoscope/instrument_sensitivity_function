@@ -156,44 +156,10 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Resolution / deg')
+    axes.set_ylabel('Angular resolution / deg')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'assumed_angular_resolution.png'),
-        dpi=dpi)
-
-    # Effective-Acceptance charged particles
-    # --------------------------------------
-    figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-    axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
-
-    log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
-    electron_A_cm2_sr = electron_response(log_E_TeV)
-    proton_A_cm2_sr = proton_response(log_E_TeV)
-
-    axes.plot(
-        np.power(10, log_E_TeV)*1e3,
-        electron_A_cm2_sr/(1e2*1e2),
-        linestyle='--',
-        color='k',
-        label='electrons and positrons')
-
-    axes.plot(
-        np.power(10, log_E_TeV)*1e3,
-        proton_A_cm2_sr/(1e2*1e2),
-        linestyle=':',
-        color='k',
-        label='protons')
-
-    axes.loglog()
-    axes.legend(loc='best', fontsize=10)
-    axes.spines['right'].set_visible(False)
-    axes.spines['top'].set_visible(False)
-    axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Acceptance / m$^2$ sr')
-    axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
-    figure.savefig(
-        join(out_dir, 'response_to_charged_particles.png'),
         dpi=dpi)
 
     # Effective-Area gamma-rays
@@ -249,7 +215,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Acceptance / m$^{-2}$ sr$^{-1}$')
+    axes.set_ylabel(r'Area $\times$ solid-angle / m$^2$ sr')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'response_to_charged_particles.png'),
@@ -418,7 +384,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('differential Rate / s$^{-1}$ GeV$^{-1}$')
+    axes.set_ylabel('Differential rate / s$^{-1}$ GeV$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'expected_trigger_rates.png'),
@@ -455,7 +421,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Flux / m$^{-2}$ s$^{-1}$ sr$^{-1}$ GeV$^{-1}$')
+    axes.set_ylabel('Differential flux / m$^{-2}$ s$^{-1}$ sr$^{-1}$ GeV$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'cosmic_particle_fluxes.png'),
@@ -617,7 +583,7 @@ def analysis(
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('differential Flux / m$^{-2}$ s$^{-1}$ GeV$^{-1}$')
+    axes.set_ylabel('Differential flux / m$^{-2}$ s$^{-1}$ GeV$^{-1}$')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'integral_spectral_exclusion_zone.png'),
@@ -650,8 +616,8 @@ def analysis(
     axes.legend(loc='best', fontsize=10)
     axes.spines['right'].set_visible(False)
     axes.spines['top'].set_visible(False)
-    axes.set_xlabel('time-to-detection / s')
-    axes.set_ylabel('number of sources')
+    axes.set_xlabel('Time-to-detection / s')
+    axes.set_ylabel('Number of sources')
     axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
     figure.savefig(
         join(out_dir, 'times_to_detection.png'),
