@@ -38,8 +38,8 @@ def test_get_electron_positron_flux():
     assert electron_positron(-5.) == 0.
     assert electron_positron(-3.24527) > 0.
     assert electron_positron(-3.24527) < 10e0
-    assert electron_positron(-0.02) > 0.
-    assert electron_positron(-0.02) < 10e0
+    assert electron_positron(-0.096) > 0.
+    assert electron_positron(-0.096) < 10e0
     assert electron_positron(1.0) == 0.
 
 
