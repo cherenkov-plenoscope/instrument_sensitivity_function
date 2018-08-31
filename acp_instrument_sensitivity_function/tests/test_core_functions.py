@@ -10,6 +10,14 @@ import pytest
 import os.path
 
 
+def flux_for_y_paper(E_TeV, phi_1p7GeV_per_m2_per_s_per_sr, exp_scaling):
+    E_GeV = E_TeV*1e3
+    flux_per_m2_per_sr_per_s = phi_1p7GeV_per_m2_per_s_per_sr/(E_GeV**(exp_scaling - 1))
+    flux_per_cm2_per_sr_per_s = flux_per_m2_per_sr_per_s/1e4
+    diff_flux_per_cm2_per_sr_per_s_per_TeV = flux_per_cm2_per_sr_per_s/(E_GeV*1e-3)
+    return diff_flux_per_cm2_per_sr_per_s_per_TeV
+
+
 def test_get_resources_paths():
     '''
     Test if this function returns a sensible dictionary
@@ -34,13 +42,14 @@ def test_get_electron_positron_flux():
         base_energy_in_TeV=1e-3,
         plot_power_slope=3.,
         base_area_in_cm_2=1e4)
+    ep_flux = electron_positron
 
-    assert electron_positron(-5.) == 0.
-    assert electron_positron(-3.24527) > 0.
-    assert electron_positron(-3.24527) < 10e0
-    assert electron_positron(-0.096) > 0.
-    assert electron_positron(-0.096) < 10e0
-    assert electron_positron(1.0) == 0.
+    assert ep_flux(-5.) == 0.
+    assert ep_flux(np.log10(5.865e-4)) > flux_for_y_paper(5.865e-4, 5., 3)
+    assert ep_flux(np.log10(5.865e-4)) < flux_for_y_paper(5.865e-4, 10., 3)
+    assert ep_flux(np.log10(0.582)) > flux_for_y_paper(0.582, 109.96, 3)
+    assert ep_flux(np.log10(0.582)) < flux_for_y_paper(0.582, 114.6, 3)
+    assert ep_flux(1.0) == 0.
 
 
 def test_get_proton_flux():
@@ -56,12 +65,12 @@ def test_get_proton_flux():
         plot_power_slope=2.7,
         base_area_in_cm_2=1e4)
 
-    assert proton_flux(-5.) == 0.
-    assert proton_flux(-3.) > 0.
-    assert proton_flux(-3.) < 10e0
-    assert proton_flux(-0.02) > 0.
-    assert proton_flux(-0.02) < 10e0
-    assert proton_flux(1.0) == 0.
+    assert proton_flux(np.log10(1e-5)) == 0.
+    assert proton_flux(np.log10(0.001)) > flux_for_y_paper(0.001, 4.68e2, 2.7)
+    assert proton_flux(np.log10(0.001)) < flux_for_y_paper(0.001, 7.23e2, 2.7)
+    assert proton_flux(np.log10(0.955)) > flux_for_y_paper(0.955, 9e3, 2.7)
+    assert proton_flux(np.log10(0.955)) < flux_for_y_paper(0.955, 10e3, 2.7)
+    assert proton_flux(np.log10(10)) == 0.
 
 
 def test_get_fermi_lat_isez():
