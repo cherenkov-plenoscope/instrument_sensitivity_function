@@ -87,6 +87,7 @@ def get_3fgl_catalog(path):
         'beta': 'beta',
         'Cutoff': 'cutoff',
         'Exp_Index': 'exp_index',
+        'Flux1000': 'flux1000'
     }
 
     t = Table.read(path)
@@ -581,7 +582,8 @@ def get_time_to_detections(
             fermi_lat_3fgl_catalog[i[0]]['pivot_energy'],
             fermi_lat_3fgl_catalog[i[0]]['spectral_index'],
             fermi_lat_3fgl_catalog[i[0]]['flux_density'],
-            i[1]
+            i[1],
+            fermi_lat_3fgl_catalog[i[0]]['flux1000'],
         ]
         for i in detection_times
         ]
@@ -597,7 +599,8 @@ def get_time_to_detections(
                 )
             myfile.write(
                 '# name, ra, dec, gal_long, gal_lat, spec_type, ' +
-                'pivot_energy, spectral_index, flux_density, time_est' +
+                'pivot_energy, spectral_index, flux_density, time_est, ' +
+                'flux1000' +
                 '\n'
                 )
             for row in reduced_sorted_catalog:
