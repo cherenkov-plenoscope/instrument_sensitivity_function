@@ -625,19 +625,73 @@ def analysis(
 
     # Time to detection of Gamma-ray-burst GBR-130427A
     # ------------------------------------------------
-    grb_f0 = 1.e-7
-    grb_gamma = -2.
-    grb_e0 = 1.
+    #@article{ackermann2014fermi,
+    #  title={Fermi-LAT observations of the gamma-ray burst GRB 130427A},
+    #  author={Ackermann, M and Ajello, M and Asano, K and Atwood, WB and
+    #       Axelsson, Magnus and Baldini, L and Ballet, J and
+    #       Barbiellini, G and Baring, MG and Bastieri, Dea and others},
+    #  journal={Science},
+    #  volume={343},
+    #  number={6166},
+    #  pages={42--47},
+    #  year={2014},
+    #  publisher={American Association for the Advancement of Science}
+    #}
+    #
+    # In Figure (2):
+    #
+    # Flux at 100MeV to 100 GeV is: F_100 = approx 10^{-3} cm^{-2} s^{-1}
+    #
+    # We want to give the flux of GRB in range 100MeV to 100GeV in differential
+    # representation.
+    #
+    # dN/dE = f_0*(E/E_0)^{gamma}
+    #
+    # We know gamma = -2.0.
+    # Here we use E_0 = 1 TeV.
+    #
+    # E_low = 100MeV, 10^{-4} TeV
+    # E_high = 100GeV, 10^{-1} TeV
+    #
+    # F_100 = Integral_{E_low}^{E_high}{ dN(E)/dE }dE
+    #
+    # F_100 = Integral_{E_low}^{E_high}{ f_0*(E/E_0)^{-2} }dE
+    #
+    # F_100 = f_0*E_0^{2} * Integral_{E_low}^{E_high}{ E^{-2} }dE
+    #
+    # F_100 = f_0*E_0^{2} * [-E^{-1}]_{E_low}^{E_high}
+    #
+    # F_100 = f_0*E_0^{2} * [-E_high^{-1} + E_low^{-1}]
+    #
+    # F_100 approx= f_0*E_0^{2} * E_low^{-1}
+    #
+    # f_0 approx= F_100 * E_0^{-2} * E_low
+    #
+    # f_0 approx= 10^{-3} cm^{-2} s^{-1} TeV^{-2} * 10^{-4} TeV
+    #
+    # f_0 approx= 10^{-7} cm^{-2} s^{-1} TeV^{-1}
+    #
+    GBR_130427A_f0 = 1.e-7      # flux_density    cm^{-2} TeV^{-1} s^{-1}
+    GBR_130427A_gamma = -2.     # spectral_index
+    GBR_130427A_e0 = 1.         # pivot-energy    1 TeV
 
     grb_130427A_time_to_detection = isf.utils.time_to_detection(
-        f_0=grb_f0,
-        gamma=grb_gamma,
-        e_0=grb_e0,
+        f_0=GBR_130427A_f0,
+        gamma=GBR_130427A_gamma,
+        e_0=GBR_130427A_e0,
         a_eff_interpol=gamma_response,
         sigma_bg=acp_sigma_bg,
         alpha=acp_alpha)
 
-    grb_130427A_gamma_rate = grb_f0*gls.effective_area_averaged_flux(
-        gamma=grb_gamma,
-        e_0=grb_e0,
+    grb_130427A_gamma_rate = GBR_130427A_f0*gls.effective_area_averaged_flux(
+        gamma=GBR_130427A_gamma,
+        e_0=GBR_130427A_e0,
         a_eff_interpol=gamma_response)
+
+    with open(join(out_dir, 'grb130427A.txt'), 'wt') as fout:
+        fout.write(
+            'grb_130427A_time_to_detection : {:f}s\n'.format(
+                grb_130427A_time_to_detection))
+        fout.write(
+            'grb_130427A_gamma_rate        : {:f}s^(-1)\n'.format(
+                grb_130427A_gamma_rate))
