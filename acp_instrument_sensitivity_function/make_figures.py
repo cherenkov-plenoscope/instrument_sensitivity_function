@@ -164,28 +164,33 @@ def analysis(
 
     # Effective-Area gamma-rays
     # -------------------------
-    figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
-    axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
+    for down_to_1_m2 in [False, True]:
+        figure = plt.figure(figsize=(pixel_columns/dpi, pixel_rows/dpi))
+        axes = figure.add_axes([lmar, bmar, 1-lmar-rmar, 1-bmar-tmar])
 
-    log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
-    gamma_A_cm2 = gamma_response(log_E_TeV)
+        log_E_TeV = np.linspace(np.log10(0.0001), np.log10(1), number_points)
+        gamma_A_cm2 = gamma_response(log_E_TeV)
 
-    axes.plot(
-        np.power(10, log_E_TeV)*1e3,
-        gamma_A_cm2/(1e2*1e2),
-        linestyle='-',
-        color='k',
-        label='gamma-rays')
-    axes.loglog()
-    axes.legend(loc='best', fontsize=10)
-    axes.spines['right'].set_visible(False)
-    axes.spines['top'].set_visible(False)
-    axes.set_xlabel('Energy / GeV')
-    axes.set_ylabel('Area / m$^2$')
-    axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
-    figure.savefig(
-        join(out_dir, 'response_to_gamma_rays.png'),
-        dpi=dpi)
+        axes.plot(
+            np.power(10, log_E_TeV)*1e3,
+            gamma_A_cm2/(1e2*1e2),
+            linestyle='-',
+            color='k',
+            label='gamma-rays')
+        axes.loglog()
+        axes.legend(loc='best', fontsize=10)
+        axes.spines['right'].set_visible(False)
+        axes.spines['top'].set_visible(False)
+        axes.set_xlabel('Energy / GeV')
+        axes.set_ylabel('Area / m$^2$')
+        axes.grid(color='k', linestyle='-', linewidth=0.66, alpha=0.1)
+        filename = 'response_to_gamma_rays'
+        if down_to_1_m2:
+            axes.set_ylim([1e-1, 1e6])
+            filename += '_extended_y_range'
+        figure.savefig(
+            join(out_dir, filename + '.png'),
+            dpi=dpi)
 
     # Effective-Acceptance charged particles
     # --------------------------------------
