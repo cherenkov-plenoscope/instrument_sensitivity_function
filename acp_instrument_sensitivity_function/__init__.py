@@ -136,19 +136,19 @@ def gamma_ray_sources():
     """
     __sources = []
     fermi_keys = [
-        "Source_Name", # string
-        'RAJ2000', # deg
-        'DEJ2000', # deg
-        'GLON', # deg
-        'GLAT', # deg
-        'SpectrumType', # string
-        'Pivot_Energy', # MeV
-        'Spectral_Index', # 1
-        'Flux_Density', # photons cm^{-2} MeV^{-1} s^{-1}
-        'beta', # 1
-        'Cutoff', # MeV
-        'Exp_Index', # 1
-        'Flux1000', # photons cm^{-2} s^{-1}
+        "Source_Name",  # string
+        'RAJ2000',  # deg
+        'DEJ2000',  # deg
+        'GLON',  # deg
+        'GLAT',  # deg
+        'SpectrumType',  # string
+        'Pivot_Energy',  # MeV
+        'Spectral_Index',  # 1
+        'Flux_Density',  # photons cm^{-2} MeV^{-1} s^{-1}
+        'beta',  # 1
+        'Cutoff',  # MeV
+        'Exp_Index',  # 1
+        'Flux1000',  # photons cm^{-2} s^{-1}
     ]
 
     fermi_3fgl_path = pkg_resources.resource_filename(
