@@ -104,7 +104,11 @@ def get_3fgl_catalog(path):
     df['spec_type'] = df.spec_type.str.strip()
     df['name'] = df.name.str.strip()
 
-    return list(df.T.to_dict().values())
+    list_of_dicts = list(df.T.to_dict().values())
+    for idx in range(len(list_of_dicts)):
+        list_of_dicts[idx]['name'] = list_of_dicts[idx]['name'].decode('ascii')
+        list_of_dicts[idx]['spec_type'] = list_of_dicts[idx]['spec_type'].decode('ascii')
+    return list_of_dicts
 
 
 def get_cosmic_ray_spectrum_interpolated(
